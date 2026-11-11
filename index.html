@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="author" content="Anant Shukla" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OPTIC EVAL</title>
+<style>
+  :root { --paper:#f4f6f9; --card:#fff; --ink:#1c2230; --muted:#5d6779; --line:#d9dee7; --form:#d63a58; --ok:#1f7a56; --warn-bg:#fff6dc; --warn:#7a5800; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --paper:#12151c; --card:#1b2029; --ink:#eef1f6; --muted:#9aa4b6; --line:#2e3544; --form:#ff6b86; --ok:#5ad0a0; --warn-bg:#3a3217; --warn:#f2d27a; }
+  }
+  * { box-sizing:border-box; }
+  html { height:100%; }
+  body { margin:0; min-height:100%; background:var(--paper); color:var(--ink);
+    font-family:"Avenir Next","Segoe UI",system-ui,-apple-system,Roboto,sans-serif; line-height:1.5; -webkit-text-size-adjust:100%;
+    padding:env(safe-area-inset-top,0px) 0 0; }
+  [hidden] { display:none !important; }
+  .wrap { max-width:640px; margin:0 auto; padding:20px 18px 0; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:800; }
+  .mark { width:26px; height:26px; border:3px solid var(--ink); border-radius:50%; position:relative; flex:none; }
+  .mark::after { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--form); }
+  h1 { font-size:clamp(2rem,8vw,2.9rem); line-height:1.08; margin:40px 0 12px; font-weight:800; letter-spacing:-.02em; }
+  h2 { font-size:1.5rem; line-height:1.2; margin:6px 0 6px; font-weight:800; }
+  .lead { color:var(--muted); margin:0 0 24px; max-width:36ch; }
+  :focus-visible { outline:3px solid var(--form); outline-offset:2px; }
+
+  .btn { display:flex; align-items:center; justify-content:center; width:100%; min-height:56px; border-radius:14px; border:2px solid var(--ink);
+    font:inherit; font-weight:800; font-size:1.05rem; cursor:pointer; background:var(--ink); color:var(--paper); }
+  .btn:active { transform:translateY(1px); }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.ghost { background:transparent; color:var(--ink); }
+  .btn.small { min-height:42px; width:auto; padding:0 14px; font-size:.9rem; font-weight:700; }
+
+  /* progress */
+  .prog { display:flex; align-items:center; gap:8px; margin:22px 0 4px; }
+  .dot { width:30px; height:30px; border-radius:50%; border:2px solid var(--ink); display:grid; place-items:center; font-weight:800; font-size:.85rem; flex:none; }
+  .dot.done { background:var(--ink); color:var(--paper); }
+  .dot.now { background:var(--form); border-color:var(--form); color:#fff; }
+  .line { height:2px; flex:1; background:var(--line); }
+  .kicker { color:var(--muted); font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-top:14px; }
+
+  .card { background:var(--card); border:2px solid var(--ink); border-radius:14px; padding:16px; margin-top:16px; }
+  label { display:block; font-weight:700; font-size:.9rem; margin:14px 0 6px; }
+  .card > label:first-child { margin-top:0; }
+  input, select, textarea { width:100%; min-height:50px; padding:10px 14px; font:inherit; color:var(--ink); background:var(--paper); border:2px solid var(--line); border-radius:12px; }
+  input:focus, select:focus, textarea:focus { border-color:var(--ink); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid2 label { margin-top:0; }
+  .hint { color:var(--muted); font-size:.88rem; margin:8px 0 0; }
+  .err { color:var(--form); font-weight:700; min-height:1.4em; margin:12px 0 0; }
+  .notice { background:var(--warn-bg); color:var(--warn); border-radius:12px; padding:12px 14px; font-weight:600; font-size:.92rem; margin-top:12px; }
+
+  .opt { display:flex; gap:12px; align-items:flex-start; width:100%; text-align:left; background:var(--card); color:var(--ink); border:2px solid var(--line);
+    border-radius:14px; padding:14px; margin-top:12px; font:inherit; cursor:pointer; }
+  .opt[aria-checked="true"] { border-color:var(--ink); }
+  .radio { flex:none; width:24px; height:24px; border-radius:50%; border:2px solid var(--ink); margin-top:2px; position:relative; }
+  .opt[aria-checked="true"] .radio::after { content:""; position:absolute; inset:4px; border-radius:50%; background:var(--form); }
+  .opt b { display:block; } .opt span.d { color:var(--muted); font-size:.9rem; }
+  .preview { margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:10px; background:var(--paper); }
+  .preview svg { width:100%; height:auto; display:block; color:var(--ink); }
+
+  .krow { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px dashed var(--line); }
+  .krow:last-child { border-bottom:0; }
+  .qn { width:34px; font-weight:800; flex:none; font-variant-numeric:tabular-nums; }
+  .bub { flex:1; max-width:56px; min-width:40px; height:44px; border-radius:50%; border:2px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-weight:800; cursor:pointer; }
+  .bub.on { background:var(--form); border-color:var(--form); color:#fff; }
+  .count { display:inline-block; font-weight:800; padding:4px 12px; border-radius:20px; border:2px solid var(--line); }
+  .count.full { color:var(--ok); border-color:var(--ok); }
+  .tools { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+
+  dl { margin:0; } dt { color:var(--muted); font-size:.85rem; font-weight:700; margin-top:12px; } dd { margin:2px 0 0; font-weight:700; overflow-wrap:anywhere; }
+  .keystr { font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:.08em; }
+
+  .bar { position:sticky; bottom:0; margin:22px -18px 0; padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+    background:var(--paper); border-top:1px solid var(--line); display:flex; gap:12px; }
+  .bar .btn { flex:1; }
+  .bar .btn.ghost { flex:0 0 32%; }
+  .done-tick { width:64px; height:64px; border-radius:50%; background:var(--ok); color:#fff; display:grid; place-items:center; font-size:2rem; font-weight:800; margin:40px 0 8px; }
+
+  .kpis { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px; }
+  .kpi { background:var(--card); border:2px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .kpi small { color:var(--muted); font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; display:block; }
+  .kpi b { font-size:1.35rem; display:block; line-height:1.2; } .kpi span { color:var(--muted); font-size:.8rem; overflow-wrap:anywhere; }
+  .vcs { display:flex; flex-wrap:wrap; gap:8px; }
+  .vc { min-height:44px; padding:0 16px; border-radius:22px; border:2px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-weight:800; cursor:pointer; }
+  .vc.on { background:var(--ink); color:var(--paper); }
+  .rsec { margin-top:18px; } .rsh { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding:0 2px 6px; } .rsh span { color:var(--muted); font-size:.85rem; }
+  .rrow { background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden; } .rrow.open { border:2px solid var(--ink); }
+  .rhead { display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:transparent; border:0; color:var(--ink); font:inherit; padding:12px; cursor:pointer; min-height:64px; }
+  .rk { flex:none; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-weight:800; border:2px solid var(--line); }
+  .rk.r1 { background:#f5c542; border-color:#c99a12; color:#2b2100; } .rk.r2 { background:#d7dde6; border-color:#98a2b3; color:#1c2230; } .rk.r3 { background:#e8b48a; border-color:#b97a45; color:#2b1700; }
+  .rn { flex:1; min-width:0; } .rn b { display:block; overflow-wrap:anywhere; } .rn small { color:var(--muted); }
+  .rsc { text-align:right; flex:none; } .rsc b { font-size:1.2rem; } .rsc small { display:block; color:var(--muted); }
+  .rdet { padding:0 12px 14px; border-top:1px dashed var(--line); } .rdet .stats { margin-top:12px; } .rdet .chips { margin-top:10px; }
+  .chip.blank { border-color:var(--muted); } .chip.multi { border-color:#8b3fd1; }
+  .rdet .btn { margin-top:12px; }
+  .pad { height:40px; }
+  .ghead { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .sw { flex:none; width:56px; height:32px; border-radius:16px; border:2px solid var(--ink); background:var(--paper); position:relative; cursor:pointer; padding:0; }
+  .sw::after { content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:var(--ink); transition:left .15s; }
+  .sw.on { background:var(--form); border-color:var(--form); } .sw.on::after { left:27px; background:#fff; }
+  .chipbox { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .gchip { display:inline-flex; align-items:center; gap:2px; padding:2px 2px 2px 12px; border:2px solid var(--ink); border-radius:20px; font-weight:700; }
+  .gchip button { width:30px; height:30px; border-radius:50%; border:0; background:transparent; color:var(--form); font-size:1rem; cursor:pointer; }
+  .gpb { min-width:48px; min-height:44px; padding:0 14px; border-radius:22px; border:2px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-weight:800; cursor:pointer; }
+  .gpb.on { background:var(--form); border-color:var(--form); color:#fff; }
+  #gp-box .qo { gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .linkbtn { background:none; border:0; color:var(--form); font:inherit; font-weight:700; cursor:pointer; padding:10px 0 0; }
+  #vf { position:fixed; inset:0; background:#000; z-index:40; overflow:hidden; }
+  #vf video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  #vf-frame { position:absolute; border:2px dashed #22d3ee; box-shadow:0 0 0 9999px rgba(0,0,0,.45); }
+  .br { position:absolute; width:30px; height:30px; border:0 solid #facc15; }
+  .br.tl { top:-3px; left:-3px; border-top-width:5px; border-left-width:5px; } .br.tr { top:-3px; right:-3px; border-top-width:5px; border-right-width:5px; }
+  .br.bl { bottom:-3px; left:-3px; border-bottom-width:5px; border-left-width:5px; } .br.brr { bottom:-3px; right:-3px; border-bottom-width:5px; border-right-width:5px; }
+  .vz { position:absolute; border:1.5px solid rgba(94,234,212,.85); border-radius:6px; background:rgba(0,25,30,.15); }
+  .vz span { position:absolute; top:2px; left:6px; font-size:10px; font-weight:700; color:#5eead4; letter-spacing:.04em; text-shadow:0 0 3px #000; }
+  .vtag { position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:#22d3ee; color:#00252b; font-size:10px; font-weight:800; padding:2px 10px; border-radius:20px; white-space:nowrap; }
+  #vf.guide { background:radial-gradient(circle at 50% 40%, #1f2937, #000); }
+  .vf-top { position:absolute; top:0; left:0; right:0; padding:calc(12px + env(safe-area-inset-top,0px)) 14px 10px; display:flex; gap:10px; align-items:flex-start; color:#fff; font-weight:600; font-size:.9rem; background:linear-gradient(#000a,#0000); }
+  .vf-top span { flex:1; } .vf-top button { flex:none; width:44px; height:44px; border-radius:50%; border:2px solid #fff; background:#0008; color:#fff; font-size:1.2rem; cursor:pointer; }
+  .vf-bot { position:absolute; left:0; right:0; bottom:0; padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px)); display:flex; gap:12px; background:linear-gradient(#0000,#000b); }
+  .vf-bot .btn { margin:0; } .vf-bot .btn.ghost { color:#fff; border-color:#fff; flex:0 0 40%; } .vf-bot .btn:not(.ghost) { background:#facc15; border-color:#facc15; color:#1c1500; }
+  .foot { text-align:center; color:var(--muted); font-size:.85rem; padding:22px 0 calc(22px + env(safe-area-inset-bottom,0px)); }
+  .preview svg, .preview img { background:#fff; color:#000; border-radius:4px; }
+  .qpad { position:sticky; top:0; z-index:5; background:var(--card); border:2px solid var(--ink); border-radius:14px; padding:12px; margin-top:12px; }
+  .qtop { display:flex; justify-content:space-between; align-items:center; gap:8px; font-weight:700; }
+  .qtop b { font-size:1.6rem; }
+  .qbtns { display:grid; grid-template-columns:repeat(var(--n,4),1fr); gap:10px; margin-top:10px; }
+  .qb { min-height:60px; border-radius:14px; border:2px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-weight:800; font-size:1.5rem; cursor:pointer; }
+  .qb.on { background:var(--form); border-color:var(--form); color:#fff; }
+  .qb:active { transform:translateY(1px); }
+  .qnav { display:flex; gap:10px; margin-top:10px; } .qnav .btn { flex:1; }
+  .krow.cur { background:color-mix(in srgb, var(--form) 12%, transparent); border-radius:10px; }
+  .fillbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; font-weight:700; font-size:.9rem; }
+  .fillbar .btn.small { min-width:44px; padding:0 12px; }
+  .ex { display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px; }
+  .ex strong { display:block; overflow-wrap:anywhere; } .ex small { color:var(--muted); }
+  .exa { display:flex; flex-direction:column; gap:8px; flex:none; }
+  .empty { border:2px dashed var(--line); border-radius:12px; padding:18px; color:var(--muted); }
+  #toast { position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); max-width:calc(100% - 36px);
+    background:var(--ink); color:var(--paper); padding:12px 16px; border-radius:12px; font-weight:600; font-size:.95rem; z-index:30; }
+  .shot { width:100%; height:auto; display:block; border:2px solid var(--ink); border-radius:12px; background:#fff; margin-top:12px; }
+  #al { touch-action:none; }
+  .pick { display:grid; gap:10px; margin-top:12px; }
+  .tips { color:var(--muted); font-size:.9rem; padding-left:18px; margin:14px 0 0; }
+  .strip { width:100%; height:auto; display:block; border:1px solid var(--line); border-radius:8px; background:#fff; margin-bottom:6px; }
+  .rv { display:flex; flex-direction:column; gap:8px; padding:12px 0; border-bottom:1px dashed var(--line); }
+  .rv:last-child { border-bottom:0; }
+  .rv small { color:var(--muted); margin-left:8px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { min-width:46px; min-height:46px; padding:0 10px; border-radius:12px; border:2px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-weight:800; cursor:pointer; }
+  .chip.on { background:var(--form); border-color:var(--form); color:#fff; }
+  .chip.hint { border-style:dashed; border-color:var(--form); }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 4px; text-align:center; }
+  .stat b { display:block; font-size:1.4rem; } .stat small { color:var(--muted); font-size:.75rem; font-weight:700; }
+  .hero { background:var(--ink); color:var(--paper); border-radius:14px; padding:16px; margin-top:12px; }
+  .hero small { opacity:.75; } .hero .big { font-size:2.4rem; font-weight:800; line-height:1.1; margin-top:6px; }
+  .bd { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:6px; margin-top:12px; }
+  .bd div { border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:.82rem; background:var(--card); }
+  .bd .ok { border-color:var(--ok); } .bd .no { border-color:var(--form); }
+  details { margin-top:14px; } summary { font-weight:700; cursor:pointer; min-height:44px; display:flex; align-items:center; }
+  input[type=range] { min-height:32px; padding:0; border:0; background:transparent; accent-color:var(--form); }
+  .legend { display:flex; flex-wrap:wrap; gap:10px; font-size:.8rem; color:var(--muted); margin-top:8px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; }
+  #sc-step canvas[hidden] { display:none; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand"><div class="mark" aria-hidden="true"></div>OPTIC EVAL</div>
+
+  <!-- Welcome -->
+  <section id="s-welcome">
+    <h1>Welcome User!</h1>
+    <p class="lead">Create an examination to start checking OMR answer sheets.</p>
+    <button class="btn" id="btn-create" type="button">Create examination</button>
+    <h2 style="margin-top:34px">Your examinations</h2>
+    <div id="exam-list"></div>
+    <div class="pad"></div>
+  </section>
+
+  <!-- Wizard -->
+  <section id="s-wizard" hidden>
+    <div class="prog" id="prog" aria-hidden="true"></div>
+    <div class="kicker" id="kicker"></div>
+    <div id="step"></div>
+    <p class="err" id="err" role="alert"></p>
+    <div class="bar" id="bar">
+      <button class="btn ghost" id="btn-back" type="button">Back</button>
+      <button class="btn" id="btn-next" type="button">Next</button>
+    </div>
+  </section>
+
+  <!-- OMR scanner (5 pages) -->
+  <section id="s-scan" hidden>
+    <div class="prog" id="sc-prog" aria-hidden="true"></div>
+    <div class="kicker" id="sc-kicker"></div>
+    <div id="sc-step"></div>
+    <p class="err" id="sc-err" role="alert"></p>
+    <div class="bar" id="sc-bar">
+      <button class="btn ghost" id="sc-back" type="button">Back</button>
+      <button class="btn" id="sc-next" type="button">Next</button>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="s-result" hidden>
+    <button class="linkbtn" id="rs-back" type="button" style="margin-top:18px">← Back to home</button>
+    <div id="rs-body"></div>
+  </section>
+
+  <footer class="foot">© Anant Shukla (M.Sc. Physics)</footer>
+</main>
+<div id="vf" hidden>
+  <video id="vf-video" autoplay playsinline muted></video>
+  <div id="vf-frame"></div>
+  <div class="vf-top"><span id="vf-msg">Fit the 4 black corners of the sheet inside the yellow brackets. Keep the top upright.</span><button id="vf-x" type="button" aria-label="Close camera">✕</button></div>
+  <div class="vf-bot"><button class="btn ghost" id="vf-dev" type="button">Device camera</button><button class="btn" id="vf-snap" type="button">Snap sheet</button></div>
+</div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+  const EXAMS_KEY = "optic_x_eval_v5";
+  const $ = id => document.getElementById(id);
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  const L = i => String.fromCharCode(65 + i);
+
+  let S, step;
+  function freshState() {
+    return { cur:0, name:"", m:{ correct:"1", wrong:"0", blank:"0", multi:"0" },
+             tpl:{ type:"default", q:20, o:4, c:2 }, key:[],
+             groups:[{ id:"class", label:"Class", on:false, items:[] }, { id:"house", label:"House", on:false, items:[] }, { id:"wing", label:"Wing", on:false, items:[] }] };
+  }
+
+  /* ---------- storage ---------- */
+  let mem = { exams:[], records:{} };
+  function loadAll() {
+    try { const r = localStorage.getItem(EXAMS_KEY); const s = r ? JSON.parse(r) : null;
+      if (s && Array.isArray(s.exams)) return s; } catch (e) { /* ignore */ }
+    return mem;
+  }
+  function saveAll(s) { mem = s; try { localStorage.setItem(EXAMS_KEY, JSON.stringify(s)); return true; } catch (e) { return false; } }
+  let tt;
+  function toast(m) { const t = $("toast"); t.textContent = m; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => { t.hidden = true; }, 3000); }
+
+  function renderList() {
+    const all = loadAll(), a = all.exams;
+    $("exam-list").innerHTML = a.length ? a.slice().reverse().map(e => {
+      const mk = e.marking || {};
+      return '<div class="ex" data-id="' + esc(e.id) + '"><div><strong>' + esc(e.name) + "</strong><small>" + e.questions + " questions · +" + mk.correct + " / –" + mk.wrong +
+        " · " + (((all.records || {})[e.id]) || []).length + " scanned" + ((e.groups || []).length ? "<br>" + esc((e.groups || []).map(g => g.label + "-wise").join(" · ")) : "") + '</small></div><div class="exa"><button class="btn small" data-a="open" type="button">Scan</button>' +
+        '<button class="btn ghost small" data-a="result" type="button">Result</button>' +
+        '<button class="btn ghost small" data-a="del" type="button">Delete</button></div></div>';
+    }).join("") : '<div class="empty">No examinations yet. Create one to get started.</div>';
+  }
+  $("exam-list").onclick = e => {
+    const b = e.target.closest("button[data-a]"); if (!b) return;
+    const id = b.closest(".ex").dataset.id;
+    if (b.dataset.a === "open") { startScan(id); return; }
+    if (b.dataset.a === "result") { openResult(id); return; }
+    if (b.dataset.armed) { const all = loadAll(); all.exams = all.exams.filter(x => x.id !== id); delete (all.records || {})[id]; saveAll(all); renderList(); toast("Examination deleted."); return; }
+    b.dataset.armed = "1"; b.textContent = "Tap to confirm";
+    setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = "Delete"; } }, 3000);
+  };
+
+  /* ---------- screens ---------- */
+  function showScreen(n) { ["welcome","wizard","scan","result"].forEach(v => { $("s-"+v).hidden = v !== n; }); window.scrollTo(0,0); }
+  $("btn-create").onclick = () => { S = freshState(); step = 1; showScreen("wizard"); render(); };
+  $("btn-back").onclick = () => { $("err").textContent = ""; if (step === 1) showScreen("welcome"); else { step--; render(); } };
+  $("btn-next").onclick = () => {
+    const msg = validate(step);
+    $("err").textContent = msg || "";
+    if (msg) return;
+    if (step === 5) return save();
+    if (step === 3) fitKey();
+    step++; render();
+  };
+
+  function render() {
+    $("prog").innerHTML = [1,2,3,4,5].map(i =>
+      '<div class="dot ' + (i < step ? "done" : i === step ? "now" : "") + '">' + (i < step ? "✓" : i) + "</div>" + (i < 5 ? '<div class="line"></div>' : "")).join("");
+    $("kicker").textContent = "Step " + step + " of 5";
+    $("btn-next").textContent = step === 5 ? "Save examination" : "Next";
+    $("err").textContent = "";
+    $("step").onclick = null; $("step").onkeydown = null;
+    [null, step1, stepG, step2, step3, step4][step]();
+    window.scrollTo(0,0);
+  }
+
+  /* ---------- validation ---------- */
+  function validate(n) {
+    if (n === 1) {
+      if (!S.name.trim()) return "Enter an examination name.";
+      for (const k in S.m) if (S.m[k].trim() === "" || !isFinite(Number(S.m[k]))) return "Marks must be numbers. Use 0 for no marks.";
+    }
+    if (n === 2) {
+      const g = S.groups.find(x => x.on && !x.items.length);
+      if (g) return "Add at least one name for " + g.label + "-wise, or turn it off.";
+    }
+    if (n === 3 && S.tpl.type === "custom") {
+      const q = Number(S.tpl.q);
+      if (!Number.isInteger(q) || q < 1 || q > 100) return "Questions must be a whole number from 1 to 100.";
+    }
+    if (n === 4) {
+      const left = S.key.filter(v => v === null || v === undefined).length;
+      if (left) return "Set the answer for " + left + " more question" + (left > 1 ? "s" : "") + ".";
+    }
+    return "";
+  }
+  function fitKey() {  /* keep key length equal to question count */
+    const q = Number(S.tpl.q), k = [];
+    for (let i = 0; i < q; i++) k.push(S.key[i] !== undefined && S.key[i] < S.tpl.o ? S.key[i] : null);
+    S.key = k;
+  }
+
+  /* ---------- step 1: details and marking ---------- */
+  function step1() {
+    $("step").innerHTML = '<h2>Examination details and marking</h2>' +
+      '<div class="card"><label for="f-name">Examination name *</label><input id="f-name" value="' + esc(S.name) + '" maxlength="80" autocomplete="off" />' +
+      '<label style="margin-top:20px">Marking scheme (per question)</label><div class="grid2">' +
+      field("correct","Correct (+)") + field("wrong","Wrong (–)") + field("blank","Blank") + field("multi","Multi-mark") + '</div>' +
+      '<p class="hint">Enter wrong-answer penalty as a positive number. 0 means nothing is deducted.</p></div>';
+    $("f-name").oninput = e => { S.name = e.target.value; };
+    ["correct","wrong","blank","multi"].forEach(k => { $("m-"+k).oninput = e => { S.m[k] = e.target.value; }; });
+  }
+  function field(k, label) {
+    return '<div><label for="m-' + k + '">' + label + '</label><input id="m-' + k + '" inputmode="decimal" value="' + esc(S.m[k]) + '" /></div>';
+  }
+
+  /* ---------- step 2: result groups (class / house / wing / other) ---------- */
+  function addItems(g) {
+    const el = $("gi-" + g.id); if (!el) return;
+    el.value.split(/[,;\n]+/).map(s => s.trim().replace(/\s+/g, " ")).filter(Boolean).forEach(v => { if (!g.items.some(x => x.toLowerCase() === v.toLowerCase())) g.items.push(v); });
+    S.focusId = "gi-" + g.id;
+  }
+  function stepG() {
+    const ph = { class:"e.g. 9 A, 9 B, 10 A", house:"e.g. Red, Blue, Green", wing:"e.g. Junior, Senior" };
+    const card = g => '<div class="card gcard" data-id="' + esc(g.id) + '"><div class="ghead"><div><b>' + esc(g.label) + '-wise</b><div class="hint" style="margin:0">' +
+      (g.on ? "A separate result will be prepared for each " + esc(g.label.toLowerCase()) + "." : "Off") + '</div></div><button class="sw' + (g.on ? " on" : "") + '" type="button" role="switch" aria-checked="' + g.on + '" aria-label="' + esc(g.label) + '-wise" data-act="tog"></button></div>' +
+      (g.on ? '<div class="tools" style="margin-top:12px"><input id="gi-' + esc(g.id) + '" placeholder="' + (ph[g.id] || "Names, separated by commas") + '" style="flex:1;min-width:0" autocomplete="off" /><button class="btn small" type="button" data-act="add">Add</button></div>' +
+        '<div class="chipbox">' + (g.items.length ? g.items.map((it, i) => '<span class="gchip">' + esc(it) + '<button type="button" data-act="rm" data-i="' + i + '" aria-label="Remove ' + esc(it) + '">✕</button></span>').join("") : '<span class="hint" style="margin:0">Nothing added yet.</span>') + "</div>" : "") +
+      (g.custom ? '<button class="linkbtn" type="button" data-act="delg">Remove this grouping</button>' : "") + "</div>";
+    $("step").innerHTML = '<h2>Result groups</h2><p class="hint" style="margin-top:0">An overall merit list is always made. Turn on any other way you want results prepared and add the names. You can skip this.</p>' +
+      S.groups.map(card).join("") + '<div class="card"><label for="ng">Another grouping (for example Section or Branch)</label><div class="tools"><input id="ng" placeholder="Grouping name" style="flex:1;min-width:0" autocomplete="off" /><button class="btn small" type="button" data-act="newg">Add grouping</button></div></div>';
+    $("step").onclick = e => {
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      const act = b.dataset.act, c = b.closest(".gcard"), g = c && S.groups.find(x => x.id === c.dataset.id);
+      if (act === "tog") g.on = !g.on; else if (act === "add") addItems(g); else if (act === "rm") g.items.splice(Number(b.dataset.i), 1);
+      else if (act === "delg") S.groups = S.groups.filter(x => x !== g);
+      else if (act === "newg") { const v = $("ng").value.trim(); if (!v) return; S.groups.push({ id:"g" + Date.now().toString(36), label:v, on:true, items:[], custom:true }); S.focusId = null; }
+      const y = window.scrollY; stepG(); window.scrollTo(0, y);
+    };
+    $("step").onkeydown = e => {
+      if (e.key !== "Enter" || !e.target.id) return;
+      if (e.target.id === "ng") { e.preventDefault(); e.target.nextElementSibling.click(); }
+      else if (e.target.id.indexOf("gi-") === 0) { e.preventDefault(); const g = S.groups.find(x => "gi-" + x.id === e.target.id); if (g) { addItems(g); stepG(); } }
+    };
+    if (S.focusId) { const el = $(S.focusId); S.focusId = null; if (el) el.focus(); }
+    $("err").textContent = "";
+  }
+
+  /* ---------- step 3: template ---------- */
+  const TPL_IMG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAu8AAAKKBAMAAAB/lKiLAAAAMFBMVEX////+/v78/Pz4+Pj09PTs7Ozb29u/v7+enp6Hh4dtbW1VVVU7OzspKSkUFBQDAwPUw4kpAAB2CUlEQVR42u39e3wb5Zk3jH9vyQECSXzPSIYWSKyRZGhLIdbBabstxDqZ9u1uIbYUoNttCzlQoPvsPuVQtnSf9/m92xME9vfZ/b2lxHFon3ZLi09h290CsSW73S0nW4dAW0JiHZKUFpJIM04ChFia+f0xM5Jsy2M5shVI5voDnNElzXV/57qv+zDX974AXXTRRZclFwIwOgr1F6kBCOkw1F9ONQCf3qDjUHeZJMCTaR2HOotx9V4AP9OBqLcsvwcGHYUzIzrwOvA68LrowJ+90lCHxbGTkWI8TA4glzrmpOAZQIrZKABIMX6GOmuluZQAkwPJNABis0gZDoCUKk57SWtaAHFRKSrA4IWUSpscUrox4aLIHbNAik06qTRJAQDJY47yLxMnw2dWHfACUsxkAXh53S5F7bJ6do9T+SP+fgeetPkc4nC/EOii0sRDb2/lpLCNw9Gej7ULAFPYvmtGFwz4aHYoIgS6Gp99BAA2enIRP5UEabxfRb4h0A0YNzoK23dh2VYm9+yxkFeK4ncbHdh/yIvsk/+5lTt6yAEeoM++3kUlQRzuFwAA5g5HLp7/t40cju74mBd81MZJAsiqH3zEQXmAjv3+dgsA4KX4+zzUEPPGDamGeztpco9/TUwoxEzZVNy+PnbAJqVSGbuFn/mYQs3pK7Y4kNwTcFEARrsvm4q7G1NN93qoomTyOgAxagy4KAqjzmTcvjl3/CsbCmn7+mjM6MtlxIQjFTW2p1IpI5Pc4xPTV9zjkX8+tCHV8h2uELevj6Wjx33ZZMzenEqlrXTimCeXSh3niFMS3I28iVv6ULC0Cyhy5/67cXHkCQcuSP+/ABp2fA3LRp5Hw2MbQD6f+/4MdfMjL2zAxye+RfF5/nkHgIvjp76M8+O/wi38ryyK0l8fvhUA7uSfdwDnv3gj+ebTdNnjz2PZ4J8p+WbhfwLnP3Mj/vHUjcDn78Hy3D/hLvFbAIBl/d/CJbFvYdnI8wC+MHUblg0+D5CHvoy7pr4MfODR83/Wen7s+7jl0ff7AqrBtX8nDg/4HZAgAJB4AeB5ED4Ng2vl+IzH5L4xvAtj/x50AGmrBYCpEXKQGEhYW9U4zbIA8LhgcwASLxi5qDA1LkBMs+1SapIFGD4BCQAigCQAPQeccgdvTuJoBADPA+AhyVpSHIAAICcglgCAQeH9PqsxtccEoOeEq3hFUv6Xgdk7PjOSulZPAIWU2QGkWA6ANy3JX8nz6v51g+WY/GeqwUUBgHAABnkUUgYGEYGlsPIZWTeXAgCIGYf8zChBIaWCWgI3rPxZSIkp5Y/3O/DBNSkA4gEnnX49HxaIrzmcmLF7ZMuOAIgZbBTZQyxAWtPTnxcA9jJl6jG1p0vB0+egOQHgj1uRm+RAPFmlc3x0cOYNGMRme8dFT8nqa3umBmTzet7nwBNOygGQ0o7W6R9IYZj8K5Kz1DMZAPFJTnlYTWtUtzQzyjhMvKmU0yL/RpOPApDSbX5OFIDBSRtlYHUQS1IZ2YPKs6Jy15ImN3cy8ZkzWGLvlP/PBs+aBZSB4wFA4g2W2X7miM7ckTZQWV1gLJDSzlZYRQV41tecUroHl0qbZE8fP+jiABSSx7f4V38DEDMcdfIMNcqPy+zzync1da2RgS/ELw51Lt8JAFarVemEfr9XfrQ+P1c34Jd6Hm9g5NELZHZn8DX/YHTmNfqqrM5QSCkT92unEmtJqCMfzigP5403jlnl0Dzyl47fA9Kwz7NF2smjkP4Ljotey7HiKADjRsH0LgAYQsH98iheGPd0SHxEANgQsAwAYN9KuJ8BMHSsYy86a4An8ggmCYTO/MjoWjEx19eE5QBSx22UppYDANZduWLbgPIsm59//piNCgCmhm90/QeAsT6uJZgcEQqpL1ho9iDjTAsAxBiOXQqA3EymHhqRQ02f9e7r+XQcaGtSu3suJb92llLCsavOmlAjQZ53lE8h1EjjjP5QjiIul8vlcs0cfjFwwGpszsl/v/g4k1UmKqZVx9ZkODmG9O/pagUgbu8R1gUAjBhMzbljLJcDAOmF++/KAJB+PmLJKbc/8g+Pk5AXwLM2m+0LMvD33z+gqN+ZOYuAl2MMlVTo1dkJCV4TVnpdSJb20nOivACIvMPZqA6E/YdcyoPxsoFOycopc6OmdoBwqx7qmexqB6IH2cZc2knVb8kjhBQ7oXzZwE11Dzb4Zj5idVIrps8a4AtphgAgUAfJYsgxu7LKnIYwsgCQMgwFQMFngHyctUnqfDOZ8ClTR6vAMGlWnsmL4wedFMYgprYNmjhAnLRK6bRD7SeQZ+WSMggDDT682Jdwzhzo1UE+f/YAL6UIBWDgUqPStAweYvJERwATBxzp7u7u7u7eMQqIvIMDwDSmBUCKmaw5tfPnY3YHBQDjNb3d3f3K6IrhET8FYS04Ej0GQEy7pWTK2Kx6fKHHZgEwHne2KtNVir4IMxP4qV1KnNth484S4BE5ZgPAcDFBEhgKMGoY8DVGMyB+LyBGZRGAQszQChDvqgkAGDi4oTj8SsOH3Iwc4qPRaPigMhfM9x+3AAwHaVAAIKataYE/0ViM1STQDqAQNtuUNS6puChtCCgPxu85W4Af32NlQHwrYpDSDgcYV6Og7OFMjQOEk6Z3kOQf7QxM1qNxABAPrE4TEIAAiMZ9rQCIM5cAxLTDorq8vIdPuAIPiCnxKCJCurggNq/PAED/yz7Zldl2EEZdEJRCvbVZvmSUlx30LAA+H/Z3Mnb/0RgKySa3vy2YSoAyDMM6oodcLr9jOvDoH/F5Xf72gVFCGaYQS40yAMNQgJmKmN0OCsbFMwBN25yMhXJAPgqgwe9yeQsZALkcj1w6BYAhYK02H93DUULzEbeMvN3tcnPxDGUYBgwHhjKA0+oKSpNgWKvNZ+FBOIYsfVrjkr8IEfu8IWPTdY/FIfX7tsZNl98vGH2Wi7rOX3t4K2D+1IxN6ane+0KJwJFh2K3OzsFcZDLgNNpt6ywXdu7su3ur0Ce0eN/1DMLKNQQOfszW1SOIA38FYN2WPRsGRgGMJEdRyGUB0uYwtDSRNt7cxbi8g9ETW4QeAIat7Ilrv2f0WS7qGmhxGu22FsdFARg6n2hzGlpCpO3SDIyd1OoZXGpcjEBwYEnvkH3t+r9d3/2tk0D2jcu4t7qfwPmPNJ76kJGyVqv1A6//997p6sl3r/6LQ/8yijs+b7xkYiq75/6PCx+Z/IJk+Nj3373q0uaJvV/2sOKv8OXPCB84sukU98e94K3Jg2t+Zf+Ll37yBoBTlgFI1om9aLi9ffIql+uS/7r48++YGgf2edlLfgoYG15yX/mTn0qPNJ760J8/tkGwkb9qPOVyOZft9nxGsLlcl/z2pzj/Yemi5p8uKSbL1j2HOmSS3ZKeursOUfN9JHXKJOvvOe7idLTrHOMBTPVyN8ZJStDRrjPw2P8NYSuze1RHu97A4/D9E616lD8DwCP/mA51nRdQuujA68DrogOvA68Df0aEOCvuBxITB2IrfsTOei0LYuNAyt9eVNB5j08niYtCIpCiAgxOimTa5JBSTEzJYJESapq5yQGIsUkXRTYOYuWkGJHktwwQ9zigXpU1k2kQF0U2zlppTuCVdyAmh/x72bjdImfBLwvs21UBd5tv5SNu35s/VDB1t+5OzNQJrNhp9k3tLP67KdgXn/FIc2kmJwCEywmA0QOAT/EmB5A9bpEbFxVgaE4DcNNiZrzJIX9AlNe1yYPKO5KkSWntQfnb2YMyNLwAGJw0N5kVFgS8caMDuUlO/PkP0bCVyz17IOBtjNJYx23yXXb5qCRIYz1C2yYqJXO/3+iQxuLE7XfkLMbsx+Snk/8/XVSauJO4/Q4x2p8O+Rp3PwxsdEhjCbffkhRUcDd2IrsrSKXd8Y0e6edpAIYtlbJzSWDza8ZAl7pT2Bb61L6ZwDd0XPDDYPCZ0gX3pv3lwJO2Li47bNo3ChhC+3YBDbdTSciNDXR0Umn8hIxl/sFRNAW3AehwUGlM/n7bJiplVz6Fho1yov0zj95OAUAaapJbe+QVJ+UB5tn/ul1O3xdA3EFLUnjzRwsKNYWo0ZuNHg+4KQpxWzbdsnnVsa9sgKmVP+blJ52FhLsx3XLvBppMuNdGM4WosRAjpptuyx0LuRhTI29u5Q3tyT3+VVGYOjakTmzx0tiBQBcHKXq8EDN2rM1cX9yijB735VIH/GtSiBoLaQCQUgKIcxbwYAAU4whli1HEZFH+EHMCpr22SKXLE/RIy+2elDHopAAMLgpAjLubM+s2O8YP+FelTI28qZU/5qWA20MBTBz3Z5XUymTCvTaWAApR4/pUKm1mDB5+0i8JNmpv5O2tvNERNXpyqdQxLjXibkw33esBTBvXZ66/p9poo24Lk388dSNu4fd6gGW7v0zuer614ZE/44Fv4a5TXzY+9LULUt/HnfwTFOfHnwBg2HY3yC0T3wLuPLJl+60YfLX1kqctF6S+BXLLxN1YtvN5D84bmbqNgjzwT7jkpdtwl5zVDgB3Ff4nPpT+FYVx291FO5Z9Z5Zp50WewAWpr6n//OobNyp/feLvy7TOj317Tr964PBtMH7zzRsBXBK9GwDOjz9Bvln4Fv1w7vvGB2/DI3tvPO/ZG0Ee2esBgLvyxV+W2wkYHjnZCvz1ty58lH4m9/fkznt/vmHZyPO48ml8depW4DPfxnnxn+IT/BMUH99/K7nzyJfnhXz6trAkScBgxuYEJMBgjSXy4xkUJgCgkBIkAdiZcbRCAg9A4oEG/5F+YMcIcnEAOJyggASj/0gYUwN2Jwoxo59CkgS4V6WwoxQmUpMmpDIMBVmVK16s8IJfmmss9lbpVGbf8OMobEsAgMtqVX92+KATaYEnchL3qRGggbMq8V4o3VzpOwIADAjShABAiiA1AgATGfnziABJAMYTXgucK0aknsTpzWoKJ1wUkEAYUAwKSMq/I2eeiAJTPmcweSIJIB+Xkhk1XgAwOSIJYPiQi0I84JTjIQeCQin2xg5YaT7NtIIUE5ZgCFaejlQCv6la4P3XRAHk4wCIE171DnGBawUgpjKyHwhgGw1sCeUKBohpJTshlZKbWYjJukoSlJRmLGBRdW7OrE2y/EhX38gJAPA64icE9MmXx3D+7C/71mQBSKkVyqRiBy4A4L7mpwDEjNfyihT5kpUKAGC1JngeMLXGeAC8wFn2pL7AgJUOsE6eyR5wJs/zXRAcn7RRMc4DYGxUnu8UoWCdAEBYB01mgo5nvHEbRTLN2FZF1IlSVAAYQ2sMNtFgScYBEFchpWJjWBv5S48yukvCBwFAVBrXCziPHtJ8wW24agBPAQBOqW9Kd8id7+rh8h7m3cWnT8/jpegyNwBI/BV+bubTY2haKJ+piTwAPLlzmpJTyYhnWyGNHZIzn9PLgg7KC7ji0XYAOJXmODAGBiZpT+CO4INbAvd1+lo/9h1Py+3b720HgKbbH/yOl06bntz8XQdAAl/5XsjsY+7f3HT7g9/xMm03bQYA4v7Kd++7EYAx9J32tq9svumxLgrAaOUlANL2pwDzyphRHZLpzM5FrMmM1gKANPnn+MDktyjQ8BnkToQ89DSBx/AenwNAIXlsi5/7xrSPTL7GdFkEIxzPV/hJTpIAiIKBAoWIz0EBDCc6Qo4nd8FlVUg0LG1Ye4yFJ2Vs22BjuHUeaWLkxW0vB/I7r3ABIP5rHzzRVY6EwX/hI07A3Ln/qc3rh9Pbw/5rHzzRxdjkAGVwvfY4BwC2jlaDu8tkOdhFARgsUkb9ASsfO2ZWfpEBn5kOQ3MupiSbVRK7r7PyUzH61HwdV2skgVimw+945kenB3w04nICQDjetCU4rfsxweDUcJnHG5lK8ZdQSQAgSQRAIXrCDwCFsCEU4oDxsPyoIsdYNr/HSixZMXqgsCM+LmC3gB1/vG73NplmY+J745ylvBOvHe6LAL789p4Tlh/i8A9NfG+ca5ZHFxhakz1xAMhFICYzzc8OWFsBEAiqvcSRihxwKNNSX3NsJvBJDYZlw8atlQcgw8atW1oBgIS25MPAeNiwMcSdpsfn++XU2n3dmZbNG8ruR67/+tXbqsg3IYI6Cwek/j1OD4B834hpa5DB2A45Tz12jLHyaYf5mnRhl5Ts7tslf8e5ytguOABAjDP8NC6DbU2ukAaxCfbmSQaAJMYZnkhD6mLYuiINAPt3CdIuPtWfnqQACC0OloTmCmmrAwCI3zc1g23IrkqnjlvnapGYmuOFsZRSktKu//pf7QgD+d5dpo0+5rQGV2B8pGsQgPQke+8V/kjpjtLPT/5NYf7VsCTRstnA4fD/tgHAi9941BEc31VQRibxgNWROvl5p5gAkM1mL1Ci1BUPAoIlAenbjH06h8QrCQAMzE3XK49U1lAphJOhjDz8CADACxJR5oZUsdi4dvfa+F9aAMB+n7jth9ONdvHG1KSNztE68eeJD/1Nxba++MPz/gUAnv3D/10QALzUbXHck9x1eptk+fBbToBwjd09QnBaDmfYaKdl8ztJIKTCTwqEAUAUvZ5DPgAsfXFH3G4rNSXtoLmc0Tkj1JJ9NpvtwwkApMXvmD6uCwIAQn9gs9nuxEwNMXrxlsJopQaqXZZl20IWeco45l738Mw9OlNoA6aFthmSnsvj5NmkFD3kBsAyz+yIN7lOc3dSGj/gBQwBS/6hQSM7fdyVyVxyL5YKPFMp8qUJABBGzog/GvFTINAudfcfc5Z1XmtzLnWcmzkDKE43zME101mRSv8tbQ9M0xCHI22bHbObUlp3sBJhCsfYyigY1woMTVs1orOYmhN4AQDCCacHCLaju/+YlZ4e8BiPuDkQjsPU8OS0eJWPuB0UEGSqgSClZBhmjEopwgIwMNlReVg97gEMHAo9iZJBIn+8mY9lHLkZt2Y9IE4KkNB1uzFzKitHIwrWgZkaZF/3U22zgc+nGQYAsTHEu7+7u2ePozImppW93d2DbLGxZS0i8q9ODdoqf1XsO24BMBWzWSkMDAo9Ge40PR6Fhw9ZZOpGZHoHE5PH3QB4jgJso4TB4yYKEPf0deTAQSsFWMuIvJztTzgBg4kil5aJAfLTMTYK/GTrdOAZyWhl2CAFjO7orjL2CACeYQCIvNPDNPkBYpqmQbwvdh+wzUYlZrJSgPg3GFonotFYylk5mjhzA9HozuLoWp4lbw4o14Lt6oxhWggD6WgHID38R5fcH48seB5Pir94dASAyUTBiLlpdxvY4/NATHMeSqzNPCYSPg8lZoeIcjZlYdTJgfjWRAFCgFMRALByII1pNKmTrUiGT+TTuenrAHPuuN/nt2QAQmEiYMuamGatDIiUa2pzeSXA4JE1lPsa3ZxCxpzul/0HXRwldkvKtCYNFGR+LC1XZAAQaxpA4YCVypdZji+9pWiUb2G2zBHlTesFgKAQ93lgcHEwzT0ezDGrYQhhmPMIlxby438JGLrSmY8VUgBhQKhAOIZhJsP/284JyWXuY8aOXAL58NcCx0jLmmcAE0MYgHCU0Mnxa/0Go39/DAxlqIAdGwDijxjMzc/Bv/lIXIk1aQGpnABCYaKTlBDKM125dMdx9kUAElxBB+P6L4A5HwwVgOFD/oMOxh47uMVueUwS7CZZYxRgzgOlVuchiQdAWhmGgmEICBWA7K4vpiMGt7jn06v2AOCP25nzAIYHCEcZhgcLhsBkeZMKaBS8jgQlJhcxte4FCAPGBdb3BkNhPUbW0QQIA5YKsmNzcTAcDFbSsnY7Q99hhOgN/gz8kbh5TVVZwGVvoNwOo922zubvF6SBLwO4YstoYHgUaLMa2xJxYxe1egbDm7ZgR7//drvxmu9lIPa5brIdW7M9AYOfsq64YO9iXN7BPusW1nztg3GDz5Xn4shGAKlhy0jLVAwsp7hoPpUERv4iAdLJuBy/6bJaafqKL98x4Agd/ikAMXWj6d9vtDi55Y4PMTYuDiRHbm06YOR+FLkt+GJMEjY+Jmu4ueWe8xlra4N/2YooAJPXYPJyy10caweA/JDndrthxUMnXDZfv9DAMV3xiy3LO3cCZi9xegZJwMHaLR/vesExAi9tCiyzGjquIO53M4Cpy3L5cZjW3+d2NLS1kI43BNidjNsxAhh8louc6ckWp8FtJm38wZssH+wcCG8OZd5u2BqxT4WrAb6UH7/su63CR459gbT+MYG3TH987cpfXf4Xh368F/j/tAvW7PMXbJMusvz0zb+4dFXy9wn2I2Lv9wFkRy61ij9+HFj2z5ecckzsvfnz75gaB94eucx/XvfOk8v+F2eTIhBNYvyq3019svDjXTi49r+UfPhLjydw5OIIln37fOb18W+BO/R/PtH3RII5r2/nSUAyfHDsZ2v+c92HLnp7XeOl2ecB8d0L888c6k69yJ3ofrpw2bJf7vvg2M/W/Me6VmPuagv7+rv2T/Q+DuCGz7/b2mC56N3Pnrzkj3sBTAgXWbM/fvr8fzJcksyc90/vGCeDkvHKncCNd79zUePAsv9lmXQcardc9vrz+J8fEj600iOwVusFv/s+cMNXpXet1g+eePaLH5q8yuVq/OVzuOU23vR2BDjvkcZTHx8/9HefEWwu1wfGT9wjTV2SfPEjl659Lmz8ZP4nT8+Lep3y43XRfhGiSz1FB14HXgdeFx14HXhddOB14HXRgX//yZzkM0LBL9VNmbJ8rdP7zgzrCMW81iov4ZfEuEUEnlhdU9NeHcppojleNopY0uo1Kc2D5QAxYwVyk/K2r3jQglwaxCpvw08X1r2mf/oFDjleMDggpgWYLFCPIC//alv5d4jNeWSk3DgvPRrRhovYvPtGq0Gk5Zr+M+nxhkDwhWnAuz0AkJuQ27fM3ycAfgcAaSwitHmA7P8JAftel18hiHsc2L8TCFFkt82EoC102bS2sQGO5obiDSGIOwT4HcXM8/1lmVLrPjtRws3oDz5dBjzx+7wvxrSBN4a6/q0q4Nv+dmK0DsDPFeMJOzNp2vz1Lqt9Y8ihuhgAtHzdadsY4oCGr3cCDV/3AOavOxnGvgFNX++iANZVOPGIUY91U24VCDqtgSCF8fZNrQCaNgHr7uUYdp1zTvc1TXvNZ/Tu3+Vrnaehptb50SDOMx7jC8MzTnvdbejcvYu9/svJuACQLocjA/SaPLv3XP/34/FnJ7uGdkymD3cPTk56xwaJ6e93C07/hl3CQw0X7Jj509JY/MPTnmjHip2T6740savb9CUbFXqPX9qXaLh2KE7WXVam9eyriXLrbpsGfOvzL39qnsCcD395fjTYYAy730icyVmNNPOYa2lE4Id773w56ABAHFYKQOKRHwofd1HEBV4wcT07BSkOKTo+JEjDkQY3IIr8bECmHyhM3OuH+4cePhFg9u80dHGQRvi4JKAQHZ+Wkjk2UPZDYmLarxoa+Wc+Pk98EKuBs4ED9g8IZxL4ufwmYncAMFvkvA8BwIjAKQB+tJieJcYBadLnqMoC/4okMDXibYXAu5U0APmE4WoPI5x9imsFqWKORnyWMxJqiItm0wLrTJoaYzwAuwXZhG9amZJC8piNCmALB4v5bmq2ltkXLY531m7BKEZucI6U5hQWKcYTV+G4JZkGYPRDipotYkyA0ZlOAGLaxAFRl7+UI0gu7y8zy9QanXTlrNm4yaEUdCFWTv7LfiXMnhGTA8k0YdcebI4KAEwOKcYrBVxYJ5JpgLgbS9+c5DlkD7VKUcHgpNm0YHJI/CEf9SePtUYF4qJiTCCugpEm00sOPGnb4nhpx4G2TcPrPvrgLgAd90jP/N0da39QHnUG7+UA4pw44VTy3QhDXxUAwH/tg2ofZQJvPgVp3OtSTx6HaWPn0e4Re8eFb214skcAlj1o2X//VV977fMAa3k+A2Dw/2GBiQafpziXMgV3J1Szthk3Xie+tWUi8OKBUHBl98A7ANiOTUe7IwJw06amf3h21B9a09dj2Pi5//rc/aOAaWPXyu27mm7yHN2+i2nb0tzb8w6WfUVuF9iOrvzLyY3NP3hn09T3/t29dX1vz7GNm5LZ//auefTBt/7ulkl7R+f+3tGW0Km3b9i+c8lDjSFw0c7rgw0bO+2OK1wAED2wYjj/yNFpOVS8wFgALpV2KOeesp2NcQGAwTe8S+04Mqnm6EjXjVSduFz30NtBtuMek8/eZQGQH6V9o/25sAB45IMoc4QBxLBJzRsyuJxyCDOFpn4Y9ATua23YuMnucrR4e3+/mQIgbTcOXBEEgLHHj3ZHm4Iv/vs9GwJbOb/LAhD7huiykCXwVz0X++myza/9ZlM7YFbaRdpuHXv7axf2MOgd5WAKrfjNlnbzhu4TlqOD+3veus9BEbh225UhduPd5s6WLrrkwJvXD+34tXdtcnL1g6NOAHgxDEBh/JQCC0NhbM6lGuTZWUPQd2QMAMxXR9WoEgp5KYBC+C232q/80b6wv/1ohnvmEasFQH5ckIBsGICa6y1wAHoOdXHqZD8k38F23e6eE9bcCKTk5Or+jD/fm3K2AiCu8Yd2edsB7P7/Sq/t9F8+1vO6S4yZxiICAN/Y1wddTmusO+Mkvsv7HrFxIGq7jP7xB4cFaTCDo3HAfvVjD5yw2Vb29gi7Bemh1AjQ4B1+ctDXmsw0P/a4c+mBd63h8zHX5bsw3p+WWx8xMMQzK0OZwrAqlzpmkl1549U7ngIAd5HaxTJK8uD4AXV4ZdcelaInrI8L2R2Dctrf4AEbdeYSZSMpAOBoxK30JPmsYYC4xFEpLu1OI/9DPvnQLmdKkI+9bWjnPbyJFscnPpHNOI9kxJd2jAJGTvCnWUbixTQ4WyqRSwhAsj8tpxy27xdG5DtKgDPXcM2kk2M8SQEAXuIB0zU5DBgtjwvJvhRjWfIY74SAgf/NClJBVEJz9JCVWJ6b+RUBrHTg7QNOKgBS9OOi7OlJzjcoJ86ODbI+GfjI/1AWJM5mHvFJjgop4ZQyPco4GU49lL9s8A5v8D8NAOJQgpXZmSwvkJ8flT+e2H/we/+NvsOjAIjpDpBJFfgGxxsC4p9slHJhQd4gABGkZws2wMClMfXQBKSjkkABwLkmXcr2Iuz1HwPzZ74p8MeM6gZsI4/UIQbgBeUrSwq8VRLAHyvPES9knObV/MytJsCHNiJwjhEAb4b/b24EAPabAp07BQCQonAKAFB4uNP1OwAAJwGiwJUx+Aqxv3XIwV1QT5gXAEj9m53tssJ4gwcADAwg9U2bOR7px/kAWfFPPyrrufRVJb9SAACy8ls/BEDcAe9JwvwZhT5cAEhS0ZrSDzI/vwvA+Qe3CsW7eCGbW7d5PJ3BbRRjTqf01PTlPhUyxGEPBRtZuQ8OKOe6i/0nSvnqij8dHVEYLITMok0OGGzyYeNpwlAADJU5pxG72relijSMUveYkZzPAOkyLQYAzP722OyTgsn0fzAAMNV36F5/UZGSmWpLCjyhmL4lKqaMzhl54Q6azjRc093dvdMkx+AJ9Vz34RF3caej9zcOAMiPn1COoCAMJH7aIjZ5iG1MA0AsQwGAWSl3rR2vdKqdYod8xgNH5UJP6iwTkNl7BqaMWg8CCqG4SpIMBGC50PpeARCsgGEu/5XAURCHuK3/RGfrtBUZXy/g0wwBxGmOGTnuSIGU0Q+Ic1UUbGGor2/nQTmXt3iu+/7+hlJRGbMfAKSBA3IGt2BQkkjLl/BueRUvpq0OgHjlxGRkI8UtNNLWDoiC1YOm4saRNGllSFs7AGnSxjAt7cXZFkfBFbO+pWMuhrT5XcldgAQHQ1rKUsklA0OLPVHinR7GHDBd3v24lSrEhzRhZOp6fYBPsRxYMV3eMbOZG3Mw+5Q4BBC762iS+PhMsaQWkaLKue5S34i/U+VtuOQSFW8q+ZsRwUZZaVrnKaR8cg+YirEcJWZvVF6n5ccni1tW7QCkXIPN5pXUni8KTq/NIz8Cn9e+QTVtKs04iCWdUQKLxPu8Lgc4ngEa07ZOq4eWKBZpo53lKJRjuvkTbquvMdC5/xFCJbAUQPggS5lVuXoBP/CKzdWZEywgDKEMA1BMxXM8Qps9kDOwra7A+oGnWC5FgUbe6WEYsDQc93kZShkmHz4R9DAMgdXq9hYYSinQI88Usgmn07lygjKUoQADMJBSvLJZtu2Q22r1XTOQYFoZBhiIAwwDYrW6WxMAUgeDQa/EAISCpVMxuz90XYJSrIi1hELXJAAQD8NIUZPNzsUOEBlgMda0JdQuEFuAY5ypE4GQJ0cJYeRPIwd8QS8gTVoDDsaePBYKdeWIjVuVFsAEHQwY8YDL6iqkKQgDQpYc+Hwk4G+P/MZhMNstbKeXsXJALJVR9t5NXmINhTbvH4LbZ3UADtrUZrcyNsepWJM/2EWtHiphXcjfSW2hUOCGAy6bmQOS8uprargp4Jv4tZPaXBtYc4uFdQCRpNID8gNtoVBwbJzYnZwHmBoAsTtISygUaEwACMfXbb0mZeYY6wbGxmHo0MZNsZe9jG3N+MGNm2IJAHaHwezoedkf/Oh4E2fyUQDixJ6OLbl4OrBJMlvGExu3iC97iNluYTspUIis29gMiPGOTbyRi0Zatl6dIv5QVy7DL9tgZIzWFWF3qCua8DKcjWVtSzOfLDvGXCSXf/aVf8t+5wNcw+enGq/4kPXtCArX/PTk5WuG9wI33nOB7aoP7O+JnLzjM1Y+gjs+825r/q9hE3+1z+diP0Uv+8Cvt1retV36KWq7yuW66KGvf8L5TgTSpec9DwAZU9eyn7x0/8cvI3+5/EMnOi88fwAXXS/PPiG9YfjLjxzpe9rw5TtNl/wUONj6zN/f9q7N5fqLoV8BECcvXfmTwRs/f1HjNR+wvv58ZvlH9v/k9f/FfeTgjy7kXv7lXgA3byJXicMXXntl/09vvPPUmt9nALzKWA92P3+pa/+/X/HLXy2/7HhfWG7XqoGTECdty55xvvQCe9Uff3PRwMTkpef1DNhsrit+8rThqonfPmBonHjR/Nkjvxz/Xx+yHt5E5HTvxZV507TJA/+0ZEHuM0taMXU+uWDi78/g3edJ0yZWU3NyiW7NMlwO57JonS1s9E+ueWJpbkv8jZY3zmS76Xsa+K80vrhE7x+N168/+uAZbDbhGAPDn0ngNUMNs2pcWLKWx0bOpL95ibv1Pevxhb58ZIluWxh7d7dwJv2tedhgwRkWnXz2XpvV6HKGYrwuOvA68LoswayGUECgGi8Z+VLOlkAB8NMqtIJnIAnKJV59m6C+U5DT04tvGKZ/8dwGnpi8NJdY/V8h5d9ZEwBpuI2Clzfck3HeqHwo/igEFAaEAJXVACA7GGgcjxO7A9kDBR5oCAFHB0mAYv8IANeEIF8T+wWQAIXys0Bh5znu8cEuPme+6Lk7ViT8dOyY47GLg7TQl3KH8v0tPjo2SccbdxnWddGJOOt69Sfruugzsbg7lO/9yLWRNstEwv3cL67/3PfixkC7kD1wOA4YOnz0Z5ETbcGp7SOA0b8yI197czwBw8e+Jo0PtPnoeJp1PX8uAl8W4xvajnTvCTHIdz+QkYYeGhG3JTD2UHhbZGj7tgyGdhza4qandmQw9pWHdgqnukfgcuChgaF+sXdbHPu/MSgYnGYr7BvGeo53AsCpHRn4PPnuSN8AAIOLA/DuwxmwDsDAQXxy+7YM9n2lexA4t4E3rY8O9xygODqUAaShmJAUwMdxJJ3NxAVIvT3HN3sQE4Dc7rAgxQSYXfRoKpkojMUB7I8CAAf/mvHdOwkFIEV4NLnp/tTRDADWxgJAjIeRAdhGQcwJMQHI9dYnLfo9DLzNAjoVnUQ8AQBSqnimozL2DWea5PfQhIsIQDZDuhyQgIKcMzkoTPXHACeApJLmWsgQr0PJZvFxcn5ZIUNsFGyutCGknGl17gLPGV0cTUF9Jz2LzCWliZxISPxiGihEYHZRAHFZUUyL33lcADW5uYKS4FKIQE35IE54LArwHIWn7PTyAg9i89JzF3gJgSATEU71yP88PHPIE9OQD7c3Oqa2ARjPGH0cID0kf3yqB4SmIBiDPqpk0EhRwagkazRYIPOWpBSsFmIpermBy2+D4aYtjnMX+BHBvDW4enhOVVFQzn5Uzmc8Gsd0xhexX5NEGlds7hxXYs1wgnTJ7DM2mzHKX0vDyhnXFLsTSwE0BILnMPDZDMz33jj3SCdJkDN4lZTxfFhocE/TCBVGEBXwsS3NSqw5HMYyOSXdmxUM8vv6lGBgTDn1NiRoAQBqIOcu8PkBAU1bPPN+RTmyHdJwhvjKQ7Mh35vB8Aiwrui/PRkip0NZcmnII0Q4Yyg719HUJcefLH/uAl8YGwFaXPOPcipGyQjs5SmJhQefAqaGEiBBNYvyaARuCwAjzaXBOQAgJxDrjBNWMbX74di5Czzz0vYRkAqlAZRpJVH+TPYL8p5Lvl8wzuogtLs7gwaVpFCICg0OAIbmbAoyiyAfg4MWgc/2AIRK2x9KnLvA25uffSgOtnVOXQJ5tjIowMAAwPgIZh1271v52LYMVI+XdibgAMBKx3OCfIi4FIO1VAtHGsiAOdfi+wzg3Q480yOUcUal6f83UAV4kYe5XRleZ/2gj0rdA6XsiVNy2qrPGnDAIAf5gUxDc6J8ruRvP7eBN9iAHeWv/uUlK2lUHZ6DXJghH4c8qErjsxedrAP5nkzxgUj9GQCkNQ4xrvQDMUPKzusXU4RliNt3Di+giJWBmBYz5aMoQ8E2KyiynCifkCHtYB1yLxifnYXQYKVICSVuxkQEgPnqZ+6/PwKrBwAV01JZflqhx8RJhpu/7Tl3gYevk2FpZBSEUd5YxMA5GLs4CkpBWZflyDgoAIZta59kGIai0MMD8lsN9c0G8TsYTkwCIAxxUOSjAohN+jUwKDRYGQbMylQhRyjk8giEYV3tfIPPbT3HgC/bj5cOuI+Zrvk5wHoo4RwjQP+m6wJmezRj9AKs//rCzqcMTgrGxa5bS7zWCS6OiVEABicDxqPs7oqGNvMV+RgAg9fmzggY6ESDn/GGj18jUH+iyeoLp5KjNoYWzDY7BeMydVjOxU2yMuDFfmOIjMWAtmAj35YeAaZ6pYAttRsNwWa+bVljdz8aQs28eytr5d8KuBrFOPLhC4FlwbV8S1AB/mify037RwA0BE3BbBpHImjoXBPMPh9s5N3uNnMwG/lo5o5OHiFDWzNv38o6D0OMXZg7d4Efy7+VlCbiQHL3biALQOzLMvzRERR6dwPIRdMQd78kP6Sw9BL2A9LQSqAwNAaIyq8MDea43LgAoNC7W4oDYt9F+ceQSxR6dwPp9G4pc2QYE9sBpNO7AaA3N5r/+dPD557T65lkdRc9k+w9EWrOvJje78OsNEdpuvc68E1b51WhQi03WOpvZ3sT70vgDXLRVCXfhp+7WKFyMKU0WWG9eya/fWT3+zPU/MF2bq5cddGB14HXRQdeB16XRV9AMQAk5UWcemQQI7/clt9MyRnyQqPy2bSjheRPiq/x1Az5WRn3klD+W6UM+nMYeGJ3QBo/0WwFII0pawHz5SMAwPqoGOHCxO5B9jdXjSpLTS8VB4pf9iD7m6vebpX/uX8EYH0U2bjz39WM+5QVgNQH1keBbIQ3hoBseDJAcWTXuQw8aQt6cynGmG0L0sLwERl44r9oBADxB6UcS8Ns0MtnL75gVPms07RCfFz+tvLJyZBHDE+y678+Ajbkb06lTI7/uD97wEeHDK0PXdFFs0Nje/z+1oxlQho0rOuiz0SP27fkHzunY7wptGn/9oi589QDI9j/4FPqVScANHSs6E10WGD2j2071KV8ZAzkB1rU0uDKJ4/1C+Izd/QlANK28brebQc6WpHv/aYgPbMtXtiWwdhDiaaODbu7n+rw06neBHyewo6Boci5DDxxB/O9A31xBjkBgnqgsNHqoABYR7S/5wAlvqv3jw0U6wY7U4NKbQqon0hpAEe7BwFDm2e4b7znABDtywDS0AhSAvg48XceHR7qObh5gzTEo8HNHEln4+cy8Aa/JToCaSBdPrSCdVg9AJwWQvMDAMuAvqb6p8HClE7tK/+EacwB5q7CeAb5cSCVAQBRSZg0umhsBNl4g5tKhQzxtUM4B9lnZcAbXVJMAE5N9z6TpYEDwBCnA+EMYYxtDGKKxxM4uVWK+rRPlnlSafgshRSAwYyoZNynZHwNXikFiGnitEAcgN1KARD3Uh3i+94H3tQqZYHyYzMBwAsiZ/kGAg5RgED8XYw6BZHA+Y6op/WXf+Lkdg8SF82NAhD5U0qm/e5B5VFKWUCUYOWAZMboowCMG7dw5xTwZbMaL83zANB3eflM55q4xwogLdCt0mRYFNGyhf93OaKQRqH5c92vhDARB6Z9wgEwWpERAOQHZtzSSQsSAB4sBY7GLX7PKcAcuOql+Dnq8erRv0cTZZ83rYmA8wDRNEz3daUQy+CK+26QOwWzXsD4wPXdT3YBKP/EaAVgsCjHZM+sHc4pA4hAGGAqjAY3BUAJc66GGvVA5GnC8rxgpcBUWEDDZi8NR4AWOf2dtAUl4nQMp5+NAkDpE9LWCYBU+jmg/FQqAqAnQXwA+HSKP1eBR4WTuogznYKRBaQdg0CLj54aGgEJuCiAhsCKAbi4ZC68CwDKPhHm+rkKko/AbgHyT/aMnMPAz0CdASy5SMZgpWCmeneBeB3M7r4MjF4AsHVFw5kGF1uYkJWLn0j7BwFmTtQF9ZxqSQJQGBeMXqCwfVvmXAU+PfM4V5MDxmZhrQAnYLc8e8cIWOpa9YOHMrC2AvBbEI2Trq6svMYt+6SQAjhJmAP8ESXRksrZyAMjONeIZzOAjwkGWtqHBNDggsHa1inB6YHLicM7MsTgcqC7Rz5rn4P1orDQ5JErJpR/gjSIf0UaluKWZ7kkMwYCEAY5Hihm0J/DwEczxASgRPLwSGBzAmIwWmDgIPXHAZaiMJyBAICB19ETN7Tn5NPdyz5BLG105FLycdjEMuOWYgYmwMAoFHL0JAAQ9zlGMS4DXowTJwOwwXYlxFsp6dp///3fzBjMFE4O+bQoGG0UaUEhEDf5L4/AZHf7AaD8k8O7bFTozxg5CtLin3HLQoxwFCwnRTNEGV6Bhq/c6zhXgZ8aF6wehm3zgAKEYeycZGrNUqzMECcHt5dhaUwgPifDNMYSAGIwbAk6BMMWv0XeJXMyTGNsDwAwrA+YiBjbOMbqt8jRi1B5msMUxjNOD2PljowTEyUUhXEBMPn8lnN15Yoe54aAkbijv/BbwPgm7Z5H/Z59jGDh4XJij9tgWPvs6KeP+00t+XEA6L/N0fTdl3o2N/3P+wFAlD8xcSAmtzV4Evkhh9ufMa1/FmC9FHYubnBScJ5Iv+vLbcuuWL39KYPP5M7EMRCsOBacO8Cf6pPcJik53BCy8Oatk7ZGQ4ANZtMhC2/s+sVuY4CMDSHbbwvRoV0AcKQfzWN9v2Q2DMcAqJ/c0iUdC1zBtj4N9FF/B58bHwQCmyQhwMcbQs18Syg32iu1tdDeYTQErIFcHKfCFyAXezN9zgKP3TmO8hPxhqExABiSogdelOIYnwDE0ZWHvI0To2Q8GXfw8sG3he6Jxlx48skXJxIAROWT8cKTAPDkUaDQnWQac2EBSD75JHBUzq7PJfCSNEb5iTgKu1+SJuTdoamfS+fWAgp6fvwZED0//j0Sas68nDsZ8u8x4APvd7pr1Rny7zWPn7baUrLUKx1BqpWlfia/va9XH1z1wVUX7S0DXXTgdeB10YE/axdQZUczqanrxdPgAUASpm8fSoKO3qIAbwgV56b7R4jNSSGNp4WWVgBHfueBNLbHzUlJQ8otP6CyOtq61AZ8S9AiDv064MHYkyOmkE+cbLb0CM6NHow9+c71Nw4d+dPGZp6bpG1By9ER4v7gkO7xNYq6gGraKb25wfDXUuEeSj4d27v5psHDd1PDX0v5uym5+cXbyJ2vbb6p75kbmwalV0nbA29YdOQWaQGVFZDjxV2CdFQwhVr7e3rDTX5G3CVIWUEaTKeM/lx/71MWHEkD0lh/Wodv0WY1SuyQALu3kIIUy7jai0MpjBwY+Uw9AMzRjI7d4k8niYvmckBMME07XMDqpQUF7+DquACTj9MBXFTgDVbKC4AkGKadjdcU9DbKEYZY6UMCCWz16ADWPqsp93gGkgBIcqJ7cd5OrheE8FEAMHEADG2hwuM6govi8cTkagVAOAgARKBs6nIqBnJTcKUAAH4LAMKUr7l0qcXj2bY2I80XR1phWqL1kLeVbOXjAEzBVgBiMhfXAVyKvRppOrVguF+AUa48IQCAOPbQuA7g4nh89pnRCzevAHiAAgZaDjxZ2ctsonYOQLbvowDD796t47e4Hi8J8rm/5QxAwejY/w87lTPgwxno8X0JgBdTcpppCXgCGF2Y2hGXqQv5NBr8OniLD3xOYAjA0EIKkkKcyRAnxWtqXb6UYLLA5NcXUIs8uA5kWAbEacmmIApgQKy8AKuHYlBmcWDHAR/Ixu926gAuAvCUghBCQQg9EjHaGNbZGB6BGDeYGNaTBMxuhvUUcgwAhrF3iga726UDWPushtgYMNZD11PRzsW7Hb7MMdf+IQGFqMd/4Ng1zwA5W/CAN5qwc2B8Bnv7fxOmKj6lLvMA37CxnW8IXRzgEcjF9/f6QpMX7fghIPbRDaHUxFOQhg461xX6X/luK9+wddImSWIyGdMBrB34wth+QMpkfw7shyintgPAvt6xRn4YKPS93Elz4cLYfgAYksbE3n0TOoA1iJ7CV3fRU/jeK1sGpyPEqaNYWvNXfYB87cAv26jPbUpLzydH6wY87K1zfqR1Grt8sYoU9ffTt6eerV+oOdWlO/qibRnoogOvA6+LDrwOvC468DrwuujA68DrogOvA68Dr8uZkLk3yYiLQowXT1p2U0gx3uiBFBU0f9HKTzud2dwKAFJqOnXH5IAYY3PqLxEfAGCOihWslSKbVnUNXkCMCW4KUbuyCHFM2xxX7iHGhNO3pB7AE3fA2zjRH1FRvP425sj3frjsQXrke09pNjdweFppoYu3M5KAiaGdZY+DsKFg4zhjflP9pYY7WhleSo0hXeGhsgG/QxzuUz9quMPR+OwDws0b8KI28A3B7mnA3+xheEhjvSOChiXLtCxZTDECwYFKHzTdfscvnrrhytyfT8r/3mvysn+IvW389I7Bk5o/uHHZ8+X/zk35Vj106G+ak3vLvGzjfVM7jv5fbPGkenG0zXH4H1s283+Y3Vxy3d9d/f/741ffeVX5SBSu/vAlE4m4/cIdezWb1nTn6+UK0t7Vnzj8yOq/lJ4TNCwpaFiyeLJs3XNzxXgS3DTW3TvQ4VffBByJCaTTIe4c79G2yOCaRt9BYVCQ8jsSLeW5T/bQiu6e7t9tKF3JpiG92XdwcwVuj7njuh07tv1mi4cqAA7HYLbTI9HwPEW7bDOqjuxPAfvCxNd6upbUZXA1B1ZFM2L0YMlMPo4WJ5WEeTyB5Wa0lweQmsamMgQ844Mo7MiUuSMADMTNLjrLA/yd2STyMXMpSVYUDJ2OeSn9xGtip12QAEgxgeVO05L6AG9ziElgRLCVABsXjD4GAAjDzH06vM3imH1IcJ4vZ1OZfWJMAGbxSfJp0jkbeJsllYaYm3QWfVCMoMVBAYBhmDnPZzU4DdbZVsYFAzlNS+oCPHFZcjwgCsZSDsHREci8VyYQCnJz+hkaWue5p6tVTAEozOQoS2mYZvVwoxN8AkjDVoRYCgtGPwOAmEIh71zImxl4sZiW1Ad4FpLsqSWvEaMw2ylA2jaGtvjncAjjNRmDiVYAodQ2YqWShFJBrpLsgnG2x8tEuLhgKCGcV1yABLaEtrTP0TIuBess8IiHitJpWlIX4A0cBAGQBDhKBoQThs5WgLhv6P1j1xwOYSrEZyfaEJelEC39k4E81e+eOS/lBcLOskQurCCgHPgozHYA5kD+8ZY5XIA4koLRMuvXbDSZPk1L6hPjS60pGT8WR4sDMLoK+9OuOWKNM52GdUaQJw2h5r7SnNswZ1iWKthTovyUviaGE4ZOAGZPbPCYr/K584RmMwb7zIfS0pUvKwKzMEvqE2oqNByFfsHoAQwOKcEbKzsE4bI82BmOZtjqORqnlX5R64FrfTQWRwsHdFJegtVSOeY15wQy0zuuuLc5LJCaLVlC4EtxsHzWNjwCF4WRCgKItfLPNfMpgZ3xUAqP7Xjr3lJE0JwHahSDKvtaYVgweuSiGsKMijLFaW1jKjar7+37h8ev39yOWi1ZylAjABQgAF82x81HYbIofkLnAj6mMAPLkX84bu60lD9UMlc/k2a5gOyhdDoS/SNwUlAJctGkSltGUoqf3RsOD2fWuXF6ltQFeDENhgAGBpky4MVwZh6WJUuNzQJxzFSaisFWnGSK/FxFohgq5mZZIlc1YqhYDvxUdA7EStNa3pWb7QKIZEipFyzMkvoAnxMYChgpYsRUWoqOjZTCELFxs422tTz4KIXXMrsDld0oJU8NyaxGe2bPqCGmQQE4IOZIaUSXBjJK8KGQWNdspzdYP739brno4MwYyp2mJfUJNVGBMDLhkoTk0n6gQGFYAMQMpQRpcyg42888j9psD8Po0Bo1EM4YWABkZjkW4kBsdBbwMVgdIAxN8k2BIAUAQoCJCACegEDk24IbZk9rL+uyfSiOSkVihdO0pE7Ax40mSnyWiVRDh1xplZFjqwAxQyxUTLlu3zRr7WK+JgsMZIw2On12YOCQLbU3GyFODrDP7BhNnBieNdyJ4xnWAqNVioz6tnYW41U+LAAxMEBusu121+yVQy6BfBxOz4yZGktRRtzSsCQinBngp/onO502V2N4hHAsA4BlWI5iKgYUYgYXczTF0llbIcS19gAlolAWE8BwlBC3E5GSB+X7En6v1R2SEsUvMgAx+Bz7o7MtGY6Y7FaX9+iYwHJWChArwzJA/wjQn2AcjZHfWJlZiwrWxXOgMTRYmdJinACmLks+hWosWerzMeZ8EfKk89bQoQ0v9gnn8TkJQJvzr9J9gjT8SRTGXmlbOzDyCeHNmU7RELAH+Fc6AbevuO20rBMG+wfX7is/LfHFHfdsNRuvfaw4bhuCDrBt66Z2VNjpzd/JhY5dsXr7D8ELaQEw+vwr04OYip1EfuBvuvJDudTsaWGg85Svp4WDIZgq/qTfAbalQ+wrL3G3IEsWVeZ8ESIlLvziZ/dtexripa8PZ4COKzMXvJ7BGx/8LV7FRyZ69x645PdPzHglsuzGNP1jctPbf8i8XVyort6Q+sOFjeN9085yip00WJf1ltbpDcHz/pC5NNv7/YoD/cmL/3btj3/yBt48P/qrk2jYlDO8/RxwalVceuOi5v/4vvTB3H/N3F68tnGy8T+vbf/DHyZfVz8iX1z1h8wH3xrqTpy2JYsmy9Y9h7lZf+cNSk+/N8rAfZ4v3E1xFok2628qKrhc1vdCPbL+EYPfxZ1V0M8dagC86LJZSOOrZ97IgsF6VSN5542zBvVl657T4kCduuNuzi2+Fwz9eaOT+o6ebSeg6czu91iM1+VMLKB00YHXgddFB14HXhcdeB14XXTgdeB10YF/b8hiVzA2OYDc9IO5DE46k3lUnVZNQqxcJebVTHZTHSypB/CE9YccufHhCF92yR10No71T7tUjVZtwtj9PktyeLiMykRs/iCXHWbi9bVkDtHaj1+4mDf+j9aTy92X8H8uvhRkA3/nAfnoJ/j0yYVp1eYBV9/01QuIyXfyT8VNfGLf+I8X4KJP0teFelpSUebZj194c/2bpx6MmtxdwZyakktaNq7YHj3uCgazKtuuOq0aI17gxt3hhMu/hc+onsv4N70UHrH5PXxGQP0s0ZD59+OJWz4pnri0D4xv2vnCJgAN39h/D1V71Df33UMBw1eij9IFac1pigMAsWu/DCafHn/UA6Bj5wvFXKcrw09vANC0bd9tWAxLapHl91QFPFnX89I9DMC0PXibpt4n9t8t96RHnleeELky+m0KAMYHXtuwEK25Qnfbtq8BjP0b39Z2+EdekDOZrh9XISV3vSkbf0XkCWYRLKkV+Gqmk2zHVb/Y3A627aavaXqBITgh56xMDZnVDC7/RXJCTWHbIdtCtOYaMjs2AYz9pnu03dG8vk+OHUNPdSmaDd5+OcNk3061gmEtltRlHm/uTD9itsLesWmewLo+nJD/Cr+ssBWNjvCofCk/6qUL0KosLRvvoUBTYB7ciW+FkpImjqskMtNqNTes75AVNVtSF+BdFl467oLLMY8lrpXqseZTEadF/vm1alKemLS2LkCrslg5AHDOd5oxYVX4EFEd11dQJ/CFhBU1W1IP4ImVAvDQ8R2JefSSanMxYJCDpqlQTDOPHOeq15pDkr0JANHekXka1VrMj5yKyxmexJnOqMCn5RzimiypC/AMADCtY/OlEzKl1UpOITA4S+mg2YPMArQqy9guAcD+wXkmeoY1RfikuJwIZbSUDh2JMZaaLakH8AYGggSDZV49WsrDlQ7IVjuKfoa8YKtGK6M9plVFkCFSadk5SCwAYFiVLV6KTVoWwZI6xHi5Y87f3OYyfBRuHS1beKeZarT4RfAzUpY+LCnmN05zkZmXlsqS2kINIKGKEnOknCs4qVwTTk+rRuDLuwhRoS1DWdaiS29JbR5/WiI/p7K2QThtrQXLPAGpkhMtkSW1Ay8tzA4qqwvMzKZNl+q0anL5Odsi1cOSWoCXqorwpTgpR1klTpY/C36WVuNcWrU6PJ1lSZmXq7etgyW1Ac+DAOK8Hi9NltyFWOT2CqWsdsLw1WvVCHwZ25tV3PtY6bZMo1AvS2oDPlP6r5aIQokuyjbKVsdLvDCzJVu9Vm0illAmnXwCAPKTxcNciENM1MuSmoAXc6BAPDHvA8qVWKVWhYcdLU3/2ZV89Vo1evyBIrHY4JBXSWK8xDVWFrH1sKS2wTUlADI7VDvUx4qnGhGf7GcQj1mLl1YlFqA15+oYVcyuC5kipOZmZZUUK54aZLTGsQiW1AH4aIJzrkiBadU64QVA7JBd/pg0eaJyZCq8rNLdTbZYYgFac8DOAQaG4SghWhspUtKmnNlHfFcn5Wtho0LLJbZrkqjZkroAf3iA7RyPosVvMbi0jvk6NeJrpwDABFcr+36FpE8+VY1xrY8uRKuy2IOtxNfZ4HfA6dPSG/ijfGwjMfuiT0GFVB44TaGVqdotqc88vvvXl/eNwrZ2qN+ouSPb09DGUYBp8Y0/pV76nd9BAdLSkY8uSKui2FqH+g5arZ6xvoOahkyN+L0MADZ4nUonzkfb/AwA1r+huGdcgyU1S1Uvu6e+DgA/m/cd4ZGnvsSH0wZXx9XfUyefUwNfSxtixOa/4Um15x4dDVWhVVF+/nMAwMZ5R9c+TwgRgW0LTRTh63cF+ViatYemhjG/JYF5LKlZFjW9Q3q3resC5qqNG37x0+KsP2PeTJd/9HObfl08VVOcrEarNsld9FcfJqZrt9r+tbiX/dapDg8u+tQX15XO6BWFdUtuSUXRZnafjnwsnJPE7BOWsksX9+ckMfu0Z8FatYXQb6R4Kbfv7vJ9hDtivCROfJvW15JKsvweEOBntyziT3b4OCnaO81ZLt7kkJK7RxeuVRvyW500N7Zz2rWbnFxu4mHU2ZJKwN/1MHSe6xkQned65kQHXgdeB14XHXgdeF104HXgddGB14HXRQf+vS06z1XnuS46z5Wb0HmuZ4Tnihp4rh9+R+e5nlbEO6t4ria/TzuppQ48V9ZHAeL2OzX1zi6eK7k5/OImLWuWnudK2OufbgXMD0z8TPPV3NnFc23a6l23WSuPaMl5roQN3O4BSMc9tpBm9cmzi+fqdwDuVi0/W3Keq/+mDQAa/BTGLq0HpM1zPfj+4rkS57M7YdRygyXnuRpdFgBgV3fH4WzXmsNr8lz3vL94rubLe3ckCKOlt9Q818LQIwDgeKl7pyYny2A5q3iuw4PRuCa5aMl5rtLQLgGAOB7dmdFs1FnFc72sBxKvVQGvLjxXANi9C5KgxclaHJ6r8F7iuYoaLIm68lxpalQL+NJTOX2ea/q9w3MlnFYhtnryXFmqtYt11vFcWSb8VLW6csxcIp4rca6MaX1+tvFcravDVeMum71EPFfinUjN00nna8v7iedK/PmUZnPqxnM1OyIjmhbTWZa8n3muZk94lJnbD+rHcyW+y8cmtaadZxfPlbgvHyK+uYGvH8/V4Br/kUmDjXWW8VwN3vAJt7xor/yA6sZzNV8T8wU1SFBnGc/V7Gr7+n2tGmN9HXiu8gQ86Lz+61s0KoOdXTxXEvS4/T4tZv2S81wJ66DEyph9Jr+/VaOm9tnFc23wAZAEDY9fep5roBMN7la3A4CoFQjOKp4rOdrX19evuW5Zap6rwbayb8DGNY/19fUNaK1vziqe66mt8+otNc+18B35/4/NOxHTea46z7WS6DxXneeq81x1qYPoPNczJzrwOvA68LrowOvA66IDrwOviw68DrwuOvA68LpUkEUmGDMsx0h8rDyVl7AORuJTvLBQrZqEUBtD+WyGn2aclfK5NI+6WlIX4IndFXKIQ+FwyWpi8wW80tjAeHyBWjV6gN/tt0wMj0fK7tHmCnLZ4Wls4jpYMocsLsG4KfRVMSZc/SE+VWTnmj63dc0f9q72CK+eXJhWbR5w3Zc2pF41fPZkrsgmJi2hu3KxU22W3J/raUlFWbbuuUUFnnzxq2P9/fE/rf5Qdq966Zq/PT7QO/KnlZ/OqlTp6rRq9IAvrv/Jf/z0T4c/+87z6u+ZvnTLL3/Z8+d02yXPCTPsXXPl0lkyF/Co5kUI6/c7KIgtENSus9g08LQXgPGW5LdUPfMje28DQK6PPaEmxzUNVqM1x6M1+SjAuEPaVGfymYlvWwC0PFxkq5KPxZ5wAGj4xpG76YLsXQKplmB8ff/YtzmY74gd/bYW8OTzCmna+M1XlQrD5OPj98h/3fXarQvRmmsM+coLrSDrHs69qFnS17zz6VYAwHlh1WLDA3vbZW8b+BVXuyU1A18Vz7Xjsh8F24nfw5s2a70DNvrGIwCAwvBbSkop8anJFDtesVWlZdfC3ebf2gqY/M0H2vxaLmC/ZjgBAMhHvBZlFuEYGAUATPXb2mu2pD7zeNuG9ONmm6F1d3fCrNX/TGuVRDiM7ykRdmUEMBVXLs2jpXVIAQlsdQAwrXxygKiAVtRz5ZU8JjFsVnzZpCaLYeAVFrVaUh/gnZSXjjkbx/sH4oTV0POuKKZtRTgZF3aNkqcIKaJkjVanVdlYTgCA3FB/T4ZSLb1i3uP4y3JHI12iSmXIJxRIa7CkLsATlgJwrOoXIElarD+2lOapEnYNYpGtFj1uqV6rsuTv+wIAHIlAAp/RaFRzkbmSVwjGcMTUL4g5K2q1pC7AyzxXthVgmP1arD+mRNQRJxWnKuEjHmCr15pLlJxZYm3cpQE8aS6lEisE4wZLsngpxrTWbkk9PF5OvKVgXa2RUY2fspSWhCrNhSs1JJ9hq9earw/68uNajSojGEdkgjERy57FMctiWbK0MZ4CAAFatnBerbhXTtidnJM6vAjla8nGTWatY1PmIRir1Nfq7D2DHq8SjF1eXKHR3mnUYaXl5YRdYbbW5Fxa8xjtthDNia00G2VJ2xLh9CxZWo9XZbhHIM5qlekias2Uwu5BNNQy9NHFsqQOwEsC9j0wCMZSjZuBKATj8vbQWVqYU2seW57syxCTdifVvCRUb+8ZBF4SVLOnooKWNWWEXTV+8iVGI1HiZyVa72yteaR/RNPiMtBY9eSCcp7rQuw9g8AXC+lKg1oUqGmEXRVlWjY54qvXmk/yKa3zCiRDCVJOBl6dL8rPW1g8S5YQeJEHBfiXXRx4QWPdIgrWotnsKtnqCOMo7vg0Z6vX0hSTk4LnNVh/4mRxZ4M4ZYsLB8zqbYlXHF0kS5ba4wUA6RNbuyiV0nO7vJTiigOAS5lJp0qEXeuadFVa8/oZCdzrINA6wEUqrX2KBON0aUfbGhcWx5KlHlyjAqgUs3UEvc6VWuuWiFltHOvLyavxwnGWqhtXhUQ1WtlRLcwpwBD7Rr+TSWroFdIqW5WY1yp7YxGr6stmRwo1W1If4BOcd2UUaAv59u/S0Mu+4pZjK2lpV87xKYz6lF5vdkYy1WjFtLYCrB5qsFIYtgTa+7VGm5htA1X2xlYo707HT9iUSy6Vc1yDJfUBfmqowTMci8YmO67Vai6mwn65vax/hdIzxKTdp1y6LroQrTmCTCeM/vXJeMM9RzRPzgm/4peP/LP7YorfFkZ9sn+b/dl0zZbULlW9c018QBwaKZA//H54QPM95MHAJX84eRJs2xfGdiqK+669MvfGSZCrtx7/j8xCtCoC7xJ/+5zw+lOr/jD8yxc0V1hNnfyrJwHzFzt+rHi8ZAq+86oAmEK3/fJx1GpJjVLty27xt+FXgd//dzim/f73ncu/cPIkYT96u71b3XAVDaHGNwjruuGGH/9sQVoVQ8j48PBweK/42+HfzgPKgXWf5rHcFvjqSz1qH927+lbh3eVW9xdPPfxGzZbUCfiqV7cvuoOUvepLH/vxo8Vrr14e4i686oYNT35zYVq1yVuGNg+xtW059S/FniH+uqPrgsvcXzT/69PTLfnokloyF/BYXLrllTtSuezYtFfiF2+L5nL7f+BZsFZtY9cdw7nc0Wc3lQeqm/tTuexL99L6WlJJloBgvM7DSKmhaYFg2W2cxO9OLFyrJiEhK+X3D0671uFg+KM7UWdLKgGvE4zPjOgE4zMnOvA68DrwuujA68DrogOvA6+LDrwOvC468O9tWexCugwwPV1OOTJ/+qXqtGoS+aB+frZxPOpsSV2AZ20OIJcsz0VgTE4KKVpeJXhOrfH0YrWXsD4KZKeVw2VdHJCL8vW1pC7AE3vQx0njw8NlbOIWn98hJbmhkQVq1egBIZ+LZqO07AhiQ8DvsuTGubL3xvWwpC7At2z1TAwZXFtR8heTf1Oyd9K9UcqkF6ZVmwcEQmt2CyYvzRXL4ZK2jevDu1k3lys9jDpYoiFVFNJlGOWgdY0SIQAMd2Yf7WLsNw3uLdZCJZ9O/izI2Tb2HL6NLkhrrjFEsYCZr6Tva1ucbNudqRJb1fTwkXt9jPvm2NMOLIYltUiVPFeYN26VT1U3b23X0rs4/AQFgA9Eiy/Tmna+0A4AFw8W21vS+r6G1hwu0LKFAgDp2Kyp9vkjdwMAeeDwbSVEZaPumCiWK67O3qUBvprpJAluCfk5AMR9X6uWXuhyuQrt4cEu5ZUl8V/XNwoAh/tsjllavrm15hxD7rYAAFl3t6andA2FAUDa9l8qk8LgPyzftuff1Zyl6uw9g/N4c0f+R0EHAKJRmgVAgzcqj0ji8Aml1AaxKUWC0f9fLlUrXIXWHLiHtsoWNGiTUF1XKwTjqYhPcRVjq0owHrK11mxJfYC3OVKDDVYAJm1b2DXqW+OxX6uE3VaVsJuPKVixa8aq0JqjS22RcScuzSQAYsvKlG1IwycUx7WtVml/YYX6WosldQGeuBohTXopyDy9z7dCnYKJA0r5X3aNmusshVnPArQqG9uoVMpgg9qDPBdWEMWEkp5NfMkSwVhJz67Bkvp4PEMBWC0gmucHgFjjanMRVQgYphJhN3XIUr1WZcl//W+V4Neq3ai1xeT5Qlx2FuIozhilFIdaLakL8DLBmLHAfG1ce5E+m7DrUdKfARQmTdVrzSUyI4X4UprrSkNjGc9VZm0Zm2cTjGuypB6hhgEAAyW+XNXNlSZlagBT4u4U5MK01WnNY7RFe3FDymoVxeVNG9JYYpCkFYLxIliytMBTmW9kcMS0FcuLoSoM1nICl1Kyszot7WnWmoy2xWUcVVEBvpxzPDmnvcwCLVnaGK/Ab5q3uSWRFBZXJYJxNVraN+rKjWprSPNconNZgoVZUg/gMekXE3hPiLl1okZQhDPfiCqBJ5AMnqgAQmhVbqYSdiU6w82q1NIU0+oRquykz9/5SClgnpa9ZxB4pRJtwzXGTgZmjTnW5GzCblnJVJU3Wp2W5noh07YBpEvD4nI2sWJ+WW1dlWBcuyU1SBXbwjLBWJq8+EEA947NGW/EstHIoEwi0p8sm4q8Wr2W9rriKwDQ2TOngljm3s7ZFYy5VZlFsmRpPV4mGOcSEs/PfHE2Q6+MsKtM1UZKhF2TQjCeR6uxClovzwuahejLeK7EIROM8xkbLS705OKt1dl7Jj0+JwCIT9xPcct1D2sMsOm/4ZQVFvGJcszMFgm7xLoyXY3W6vnfPzx7GA3ffnenhgscZNVDIUwOhU0c/ywjqPdQFrHV2XsGB9eIwDCNsXxv9w95aUpjSjlwXClfC5M3PapAoDoa8eWeWoDWHEHGAjB0rLv7R5A0mFuFlFfd+bWv2S//tdOqbjOYWqOo2ZK6AJ8cYTqPJufXK7zsVnZBXGuVthUSLqXvmp2RhWhVnqzYO6nBVsW6Jmr2KisE30rFUwqH3Mol/zW5mi2pD/BTQyduVM4p0ZwA56NueSvV1LZCaYg43iJvuLLBqyeq0tJ6wIZAJ3885AEgaadfRH/jdwAAafOqVXPzoz4PBUDM/mS8Zktql6rolq+KyeG9ACTpv597Q0Nvz3Vr08Ly5Re23VXk8Gaubv/TG8uXX9i29fD3hWlaF1XW+n+1EP3g74bDf4i9AZDsc1r7F+KK4J/+TJYvv+yGv/qxMihJp/7q/NS7y5dfuPGOH++ChiU3pqqxpDaplucq/SEm4/372Bua8x/T34DQyz51u7FPPZ1a3LfxSnLBZVfdcO2/jE7X+qS2VkX5fTQajb0BQIxq7xu9evVtk4zBfe1tv/y+yol+vem2k8sNtk9tee2bJ7Us+VxVltQH+Kolwf4ld9lVnzP/5PHipRzb8WHTVYFrfvKIlhY/W6smEd9t8TFXuT+7r3tv8doL9r9eftVH/+b4T55foL3vA+DFPcTm+9BEf0+Jei/txWX+D78+3PfGArVqk9RJw6dcjUN9T5eN/e9Ouj/5gbH+svMY6mHJHMAvNsHY7GGkXHhadDR2kkZ+WFi4Vk1C3BzlJ6a/ubE7GD4bQZ0tqSA6wfgMiU4wPnOiA68DrwOviw68DrwuOvA68LrowOvA61Kl6DxX6DxXned6+s3Vea5nBnid57q4wBMK8BXj4YyR2r/hyXDE5Lpp04T6WpO4N700EDVEO7Yk1S5endacY4gkVIzf08UcuPyhaMYWvyeUEIp94LoHYzFb5L5gLF5ub8x4epbULtXyXEnH1q1bFfZXZVkoz3W2VqQqnqth69atWzdpqS2U57pwxm1NUm0h3a8MDT3qAPmmJElv3KihpxafNTygUqXJLfsVQuotStHaKrXmwv0f9rYC541IkvSEhl7TwBOtAIDzBlRIjQ8/3w4AWPaICmktltQM/AJ4rkYOQDqhEba8UbnHzsdzrUJrjrFb5rkSCyBqnat/dvFcCcfzvFb9BnbNkBIW5+G5VqFVGXiF52pr5PmsVoHTs4vnyr4ZtLF3aSjWi+dKPI+6rBf/SEPv7OK5mtg2zdrwdeO5Eoc5pOmO7weeaxXTSZXnenmHe6xxQNCYdNaD57ocMNrWJy3SiFbPKOO5ftaSAGBs/lXxUoxpHcWZ5rlWAbzCc2U4sB1SLK7R3D8X/9biuVajpb0qpcTOpeIaLlAlz7VmS5Y4xss81wYOIAGvRhevF8/VSQHjZo1p9tnFc2UmhtMw+qhGc0uypDzXxvGwALtWZdn3Ac+1+r2aww/7nRsdVksGZ1p+PuSPb2601vALwhlvQ7XAE0gQd4ePfVvjULLpvFE5fs7Hc51LS1uyT8bY2zhNc2f9OR/P9fQsWdJQo/AVARR6Elpxr148VwD7w1pO+37guVZdSFcSAJyKabAcK/JGyy5Z+Oq15pUBrYhXA8914ZYsHfAKz3WP20sRfy/wXE1+DqLWpu3i8Fwbz3ghXZnnevDmzRzSaQ1PSzvVuKvJc9XWqoLnar6vkynwKQ0XOKhWZS3juVqZ4j1UnmvNlizxdFLmuRpdIS/TqrU7WS+eq6st2GpeOTG32lnGc+Ub/IG1wxp69eK5SkKb36tZX/is4rlODcXd3gkta+rFcw2Hj/nXDmuNrovCc5048/P4vgIdz6Av28hHNZdPPf5gOg4Q94YB1R+Hf705NQKQtuDEyHQtQ2UtrScr7n8MkOKHt+9uzGlWMJ4K/z+ujACYAh/9N/W7wxsCmQxgCN3w3URVloyceeALfQBwtHferjH8TyFTzmC9aapYUz2/zbHFlDIw13/065kFaVUc5vvk/4+NzWdJr+8+Qypjtd86UCwy/uKuvxNiGca2+aWdqNmS2uU9wnPN1ZHn+uMX6mlJRVkCnitzWUXe6Fv/MY3nWo1WbaLBcx08d3iujFQNz3WWVk1Siefq5nSe67ktOs/1zIkOvA68DrwuOvA68LrowOvA66IDrwOviw78e1sWnWDMUuSmZwAQ66xL1WnVJIThIKWnJ0WwHCQ+jTpbUhfgWbeTSrnx8kxexu5lkBuPCQvVqg13m4+DlAyXwUxYP0el1DTqcB0sqQvwpG2Lk0opRign7G5xcsg5enctUKs2MYX8DkjjKGMTG0JBK5WStJxgLFvCLaUl9QCetGxd3xdn27ZKGbWPE9PGzqEnJ9s28In0grRqjHiBLfntGVvw3lxEhZm4N17dkzaF7hUf52dYspFfOks0pIpCujannA3EqH9UFuMDR79NgYt3vlakKhpuST5KAeO2I0V2aSWtz8/SmgtRh6zA2hxamlcMvrABwM2xJ4qZYU07990G4JLI8x4shiW1SLWFdFvu/+4mCoC0ff27GzT0rhx+lALAJQpxF8DFA0+3A8DFO4vtvXK8Gq05XGDdfRYAMG28/16LxlztAZmlSu5Uaasgt+yXCcY3l3jNtVhSK/BVFdINeJr8DoC0bAxpJkcHVyiFaQfUsp/Ed3X/KAAc7mtwqlr5KrTmuIM79DUKgA1s7NLqembvcAQApB2/UQvpGl0TfQIA9O/yOmq3pC7z+KZg4XG/A2A33ravTyPbxOxUCulK/X9U2mtwjSuv0od/o6SIVqdVGXf7TZupHJuv6+3LzK3nulypLJsPOxVITesVznG+r4FDrZbUB3hXazp2wgYS2LS/W4P1B9PVKnX48IjiLobWqHIpn1Sy6qrTqmzsxk0UAAyB9r4dWpU2XUllTiINnFBQdhXUHLXky1bUakldgCdWCsBJjW1rhke19MryGSOs3J1NK4tJvRGjp3qtOaQg5yLZuw4PaU2zjZbisf5Te+QsVOIs1gcspOXEvZosqYvHMwDgsJi8+XHt1VOq2PujSrqztYywe5AuQKsy7t/7ZwEA8bdGntJ0leYifGJcyUvliisiKcXVbEldgJcJxsTibo3tYbQCAS3NfEWF5uLki22bOmCqXmsuEQDA4BNjjNbYalhVIrUWC+mWaAYRQ2vtltQj1CgEYy8ygaBGe0l5YdqMQmot7XlIPFO9lqaYOdEQ0orApIwwlCIW+VmUbsvLNO5FsGRpV64ywZgYOJhuvlzUGF3LCbsKr4sp0xYunaklza2lGfooaXO+lJt7flVOMFbvMQ/B+PQsWeIYr0RwRhwLt3RRjeaWZG7CLpkWOebS0hQHzQ7tCS2QYDzDlfA+KqRLkYsJztYq1YVF1Jr1hKWjaaNLK9Zo/0Clc9WWeDPydIEncpcdEVhGw81IWbxXrpWhQxegpSkUEHlYqrRcKvfyRbZkaYFXiKKSMM/5o2rolJspt3c2Ybc6rXm7CQ+NWspiOcFY9mWpjE2sco5rt2SJgedBAHHeXVIpY501w0lztLSqyVWvpSn8vKGk7KF4pQwAiMeK1FdYVwmLZMnSAi8TjPnxNGE0xy2RL1mtEnYjpETYXZOqXktT4gIlEDRezkkHSwRjTmbmFjLFrRfiUAnGNVuyxB6fEgDE+RRhgJRGsElZVauJT5QXIjlDkdbrXMkvQGvu8A7kMoSiUePwX7GEstmTUhpRZBMbrMoitiZL6jG4hjMMtyqGsMBxjanE3HqRE+pJYWZvTNYrvKwSdg2u1FOztFJzas0xg7dQMLQQM7CMqOGPhZTKViWu1QprcqdRRdnUmlLtdVVh7xkEPhvhOo9GER10dRaKx9tVkPyv/Sph97qkuiHlU48fbI/N1orOqVV5hmL3wuhmCmMH3dyY1rmT0QZ1m9edVTylcEiBlARXp1RLfFXYewaBz/e9fkPPCKZ2v7KhT4uoVgjbvQwAYvIfVc99DC/zy5cCq6ML0aps7E238ce3eNDf03J5j9ZG6fieLgcFwLg3lM6RDMq3bfFH45qWcFVYsiiyeByoZYPPd3EMY79j4p4iVg+/tpljGNvNseLbteq0apNPTHzHyzBs4JG9xVeVV8Z+1sUxbNsDR24t2juw9JZUlOX3LC7PVTRc+6ELGfun/uZg8fWQtCfwCcLYPxVq6E4sSKs2eePyznc/eOGn2r78k5+qTMqc6S+x/FL3p/76N48UC+kal96Syh667rnFzavp4zaZeWI93F+KA0f6tm5NE3ZF964FatUk+V66NSWwzb19pd3GbUynWyCO3aVL9bBkLllkgvGrAvvJ81/q+c8ywm6cN13VPPaTfzs5j5bRNV2rNvnTyQNXfTjb95NE+STz5GXO837c/zTqaskcHg+d53oGROe5njnRgdeB14HXRQdeB14XHXgdeF104HXgddGB14HXpYIsNsGYtVIpN/09NHEyyE1/SV6dVk1CrAzlc9NzUkwclVJp1NmSugBv8rssUnJ4OpvYZ5WS4+W1hKvTqg13m99pSUWHpxGMgy4LPz5cDrPJ7+LEpbVkblnEbWH20+FcLpd9Qj0eHAC5fiCXy+We6aQL1KoNd/sDqVwut/+eMrKc6Y5YLpc7+h0H6mlJRVl+zyITjNvuW/1YzBjYIBSp0qRl4/onw4a2rhCv8tar06rRAzo27R9OuAP38cW0ciawZcX3YvbQljI2cR0sqSnUEFdjKg2TA4AU0+iCpsDl23sERPgbiuXHDaHrtm8TMMDfloovSGsuRC0pgbgoAFHrtAF712vduzCU2hpMqWn0TaFT33scw4Pf2VwsV1yTJfUINVc89ORmis8MDQ0NPXurht7Hx2Xu7sU7f2VRLl0SlkvaNj38woYFac3hAh0/sKBh29DQ0NCjrRpztW++KBOMbxkvEozv3CenElwfLpYrrsWSWkNNNdNJNnTdoU0OuPx+v1+LCUf8U/KRvEeG7Spht+vyvgQAHOlrsC5Eq/IN2LabbqUwuP1+v9+RmVuxyTM8CABS36/VUm1G13g/AGBo0Oep2ZL6zOOXdaX+V4tTTn3O8VrNDauE3VfscnsNtmGlX4+rtWrLtH43t1Zlcd9+G5Qyp9DInSS+yxUGa37cphKMr1FqLIg9xznUbEldgPdaePG4k1jG+/oSWlVxrJerdMypuJIfabxGpfUWogqZpEwrNrdWZWPdHgBgCkN9A1pVcYg1+pTy58AhxXH9BfUL+V+bUKsldQGesBSA05Tv/u7ntcoREVeRw4sBpZ4Su6o4kQ4f46rXmkOyjwMAN7Z968M5jSpNhhLBOL9HYRNzxXRbMS0f/FGTJfUBHgA4R7QvzlKtI6OY0jwjaZA9yFbiM+SOMwvQqiiF7f8sAFgzNiCoVaUqW1wsAA0xLqfKGxxJ9bZSSknirsGSugBv4CBIMFz6kABDs0apGAMtUSikA7LVCgcAAKYypuq1NGX74yBWcVTDkjIG6yBtBQBjWR2zEdK6SJYscYyXOyYAOLSS9UljqTdIgsyWKSNPI22pXmtesxmt5U05wVgtpLuq7LYqwXgxLFnKUANIMvDEKmqMraScOqxWBJ7xQ9VqzWsTl9a0uAzSqgjGp2/JUnp8ye8ZrYpzFbrJ9KLQp61VKZhoEpQWTDA+fUuWHHhJAIxcumprZMXyutf0tLUqrOnWSPN00vnasliWLCHwUrElhEtpNqcCYfc0teYFvpHXtJjOivdlDEzlz8WxZCk9XlC9pPwIjArNnaSz4n2mjLDL8dVrzbumy2nF+PJyxaxiflkhXUbhuS6KJUsIvCgTjDMAu0aLcysKxSqqYJpnEXbNluTcWpYZWvOOrXymOhcgHikBAIXJ0m0dCue4KnvPLPAUSCcAp6Tp8XxpW8kkziLsKqf3VNQycDO05l1aaG1dlNO4iVMelgoZW2lDQZ4iVGfvmQw1SQFAHCCOlFZzkbJ6irtUslOhcLxUJFiprFpJ69gsLc25EowWzUmNmChucJlbFb+NcSqkRnWkqs7eMwh8JMNwK6MAsWp2cIT/WCTsehTCbqkisMEZG12A1hybEhwlHAXYVZr1tMWUs3iO5GoF+AGjCqlpfQo1W1IX4I8MWrsmUoDRoj2bzCcUdi7jv0bZ9yvE5PK1IPb26EK0Kod2eyeMbgbwrNIe+MJvueSx1ORKKvuUhVfc8iU2qJ60V4Ml9QFefOiVz+3YBRhE7eFGfNjs5gAwdv9R9dzH/rcDHAWILbQiuRCtysbedGPqQMgDMEnthdzhEb+HAcD629VqiVOxYCcDgGnrio3UbEntUtU711NbAADv+ufrGr8ICtE0sQWue0ztGkcGvpQOp4m17dZn1J575DfVaFXcnbxHIQI/+ug8S48eT4jEBNYdyhcHg35fiIQFgytw+U+EBdm7NLK4BGP2OscFF7qv/euX/k2thiq91vZ/kQ9eFgge6lOdVLywGq3ahDd9lmFNnwqs31Gs3vo2ey23nHV1fLp358kF2bsEsuh0S8PNsVwul3u67M0suT6Sy+ZyL2yaVyuXy71w22JZ0vJwLpfKHSk/crvhG6lcKpd91FGVJZuW0t0Xm1IP6XcZckG2919fKJ+MPn0Bkxv6l13zatHpWrVJLkyWSxM/frhsNiD+97u4IPnjB96oryV18XhdqvZ4PVv4DIkOvA68DrwuOvA68LrowOvA66IDrwOviw68DrwuFWSxCcYmB2aycw1OOpMpVp1WTUKsHGayiU0OIBtHnS2pB/CE9YccufGhEb7skjvobBzrj/AL1KpNGLvfx00Ml7OJic0f5LLDTHyWJcORJbRkDlnc/Xjzxv/RenK5+xL+z8XjMtnA33lAPvoJPn1yYVq1ecDVN331Aph8J/9U3H0n9o3/eAEu+iR9XainJRVlsY+4Jf7NUw9GTe6uYLFIE2nZuGJ79LgrGMyOCAvRqjHiBW7cHU64/GVsYsa/6aXwiM3v4TMC6meJhlRRwdjt5wBi8vs1ywajaecLmwA0fGN/qVzxN/fdQwHDV6KP0gVpzSGsjwLE7fdrEpTIp8cf9QDo2Fliq14ZfnoDgKZt+27DYlhSi1RZwZis63npHgamrwyPlb+wnK33CaVe8LJHnldwIVcq9YKND7y2YSFac40h1z/dCtKybfwlzcrOpkdekF+jXj+u6pG73pQBvyLyBFO7JTUDXxXBuOOqX2xuh33r4R/epFH5DIbgRBgAMDVkVl8f+y+SC4AWth2yLURrDtwDt3sA0vHl3t/do0V1Nq9XCv4OPaUa3ODtfxwAsG+nq71mS+ozjzd3ph8xW0ngmujOgz6Lhp+tV8sThF9WkuOMjvCofCk/qhbSrUqrsvhv2gDAHMzuiza5NB6Qb4WSBiaOm1SC8WqV1NqnUl9rsaQuwLssvHTcRZyAJHAawLtWqpzAqYhT1jOsVRPhxKS1dQFaladgLgsAGCwQeC0WKrGq8CGiOq6voE7gCwkrarWkLsDLFYw9LGNgqLZeUm0uBpTEa1OhmOsckRNxq9OqLIWhRwCAowyjSbcxlJKJp+IyqZU4i5nOxQrGNVhSH+AZAGDWCsTXSgWNORZTWq3kFLqLU0qol7IHmQVoVRRpaJcAQBDMbqqVqm8oESikuEw1MFpKa9GYXFu3FkvqArxcwdiwOoU2b2MsMbceLSWtFwm7JQJBXrBVo5WZf0xLCYYutqBRxpqUPZVBtZBuKbE7NmlZJEuWOMbLHRNRwRiaGp7b40lzmW+qhN0yv0wz1WhVUTdYjOOKW4fiWsCXrFSIaCq7THGRRbJkiUONTDCmfSOw5rSai9mEXSKcnpamTPVlSHMso2lx6R4VCMbCYlmyxB6vyKqwgLaq51iyXnl1ZuG0tWbiOhGHcZPWUq4qgvEiWFIP4CXB3hkVjP4qgaey2UtCMDaEro6jxYnqXL5iW07X3roCrxCMSeC63hE4WjWaU0bYVTynfOohx89KtN7ZWtoLOv/RHsHo0rKYzrKknGDcOLe9dEGWLDHwMs/1hE86EoZW6ejJ0mfEolQELvFGixWMq9HSFKeD7xsBndsjpxGMlXLF5QRj+diOipa8pyoYZwBAOkh5Sau2JcQyq1XKe5wprkLMlmz1WprCQTgag8acQyyhTDrlE2jykyb1tsQhJhbJkqUFXsyBAvEEgLSAud1AyjmLDbEqhN2oobjFwMpn3VSnNX8v1KxgfKBIHTY45FWSGC+xiZ3yZH1xLFnKwTUlAIiJAkOoZgXjmKlE2FVOOhKPWYuXViUWoKU1V0qDUkgahxkUMkVIzc3KKilWZBMbrXHUbkk9gI8mOOeKVD5CrJzWyhWxQ3a5i5MmT1QOSoWXFcIpTDblq9VpVZ6ssA5KrEwsY3UxKzVWrlLSppwWTHxXK6zJsFE5iYzY1JP2arCkPsAfHmA7x6PStlfcXfkhDY8/NeJrpwDABNWCzYWkTz4dmXGtjy5Eq7IEOtHgbn2z3+T39GmRlAb+6JeXyWafehBi4WWXPISbQirBuBZL6jOP7/715X2jeLf7+OruH2rp9TS0cRRgWnzjT6mXfud3UIC0dOSjC9KqaKxtZd+AjcND/2zb16e1vpka8XsZAGzwurC69RJt88uc4w3FPePTt6R2qepl99TXAUB6bD69I099iQ+nDa6Oq7+nwjI18LW0IUZs/hueVHvu0dFQFVoVY/d3FPXvzjf29nlCiAhsW2iieAJlvyvIx9KsPTQ1vDB7l0YWNb1Deret6wLmqo0bfvHToj9mzJvp8o9+btOvd6hTUXGyGq3aJHfRX32YmK7davvXYkR661SHBxd96ovrSpxj6eS6Jbekoiw+3fJj4ZwkZp+wlF26uD8nidlyDm+VWrWF0G+keCm37+7yofmOGC+JE9+m9bWkkiy/BwT42S2L+JMdPk6K9k5zlos3OaTk7tGFa9WG/FYnzY3tnHbtJieXm3gYdbakEvB3PQydYHwGRCcYnznRgdeB14HXRQdeB14XHXgdeF104HXgddGBf2+LznM9m3iu8/BG68Eu1XmuOs+1gpybPNf0+43nCpPfp81OqSPPVTtr+eziubI3D7+4ScuauvFcm74x/jPNV3NnF8+1actLr9+rlZVeN55r6O93dmjmi59dPFf/ddlYi0+jvfXjueaSL2/ScPmzi+dq8CHHH3NqWFMvnivL8TnefM7wXE2MBB5Wi4ZenXiuTgo+bdCIBBV5rkU+3/uN5+qgBDy0OMb14rkygASiAUtFnmu0eNv3Gc/VAkDQAr5uPFdQNApajJCzjOcKwmguKerGc5UEhmoSzM4unuuqNCHz6NWJ55oGQwENRsjZxXOdihlsrVrNrdBNlobnGo6zJu2p3vuA51r1Xo0k/Mzjf7tq4OmfZeOXguc6Ndzsv1jSrh09T1tmP53TsmRpPV4tpHukdxBUo9pf3Xiu0rYdGSKltCymsyyZzXNF7ZYsMfAyz1UQt39DkDSOEKgbzxVT3/tnWtAgQ9bAc12gJUsLfEb9r8kpTsytVzeeK0BsFrV4YkVLzjKeK3E59muc3lFHnivrWzWoMdicXTxXEHtg9cCohl69eK4gga4JDbblWcZzJa7QrUNhLb168VzZQGB1z4hWcDyreK4NHZte2q7V3LrxXNu2rt++TXNae1bxXEnzkw8+pa1XJ54rc3T7tnmmPWcTz/XU7fPq1Yvn+vN5J2IlnmsRvgo819O3pHY5p3muoqDzXHWea42i81yrAl7nuZ4Z0XmuZ0504HXgdeB10YHXgddFB14HXhcdeB14XXTgdeB1qSCLTDBmWI6R+Fh5SQLCOhiJT5WnoFWnVZMQamMon83w04yzUj6X5lFXS+oCPLG7Qg5xKBwuWU1svoBXGhsYjy9Qq0YP8Lv9lonh8UjZPdpcQS47PI1NXAdL5pDFJRg3hb4qxoSrP8Sniuxc0+e2rvnD3tUe4dWTC9OqzQOu+9KG1KuGz57MFdnEpCV0Vy52qs2S+3M9Lakoy9Y9t6jAky9+day/P/6nNVdm96qXrvnb4wO9I39a+emsSpWuTqtGD/ji+p/8x0//dPiz7zyv/p7pS7f88pc9f063XfKcgPpZMhfwqOpFCON2yIV05yEYDz7tBWC8OfktqlwyP7L3NgDk+tgT3IK05rAj5GMAYvf7NFkD5DMT37YAaHm4yFYlH4s94QDQ8I0jd9PaLalNqiQYg+3o+RpAbh7WLl9LPq+Qpo3ffFXhw5KPj98j/3XXa7cuRKvyDVq25V7opDB/Y/wZTfqveefTrQCA88LqK1bDA3vbZW8b+BVXsyW1A18Vwbht420AGgKHf7FZ6x2w0TceAQAUht/yKg3xqckUO16xVaVl17IksJlZF6Rw39q7TJNgbL9mOAEAyEe8FmUW4VDSD6f6be21W1KXeXxLqAsATJ5UqsmqoWdaqyTCYXxPibArI4CpuHJpHi0tIq3RJYE4HSSwKnWgq1WjZ7jySh6TGDYrvmxSk8Uw8AqLWi2pD/BOOWs/2MzzBpeGNV6VT418RCm4y65R8hQhqVmj3hXhKrQqG7v6wUFYaYMTkibB2MAV8x7HX5Y7GukS1fTDfEKBVNuSiNVzpoH/wecTgEIs1ahgTNjYqPq3Stg1iEXGTPi4RdFKzK81xx3Gt/cLhLBUkmDQ6HuG5iJdJK8QjOEoUirEnBVVWBLVsqReWwYCANk0RgN4psSOEScVpypRd8QDbPValUUaEwYzkBgKgGjokeYiwRgKwbjBkixeijGttVpSL+AlAAZGgqBVb8xgKS0JVZoLV2pIPsNWr1VZTu0CIMFBMY8lZQTjiEwwJmLZszhmmW0JuyBL6rlJJtOKtKbPZRxeDcJudVpzCUUqrXxJw1RtgrFKfZ1mCRZqSf2Ap/O0dz7CrrAArbmXUDSVoBC0gS9nUlYgGFe0hC7UkroBv0Chi6hV9nCdqyJCvYx7jwAvyQYL1bgZCBVmNZHO0sKcWnMCbz0yoagJ84bFuS8JtVtSR48XAECLCVdG2FXjJ19WH1WJn5VovbO15lqjOcKj88eAcoIxq55cUM5zRe2W1A94cT7gpxF2VZRp2WyTr15rLk92Xz0+yaRBAWhQ6iVDCVJOBl6dL8ooCzVbUkfg8zwBoEGpFwVr0Wx2lWx1hCmeHmduzlavNdeukWt8tKkrLgCQNGARJ7nSoCBbXDhgVm9LvOJozZbUM9SkoA28lCota10KLqkSYde6Jl2VlpafmW+I27s4MUMAUYtSX1r7FAnGaUcRZWtcqNmS+gBPGTAUg5MMI2kddhwxq41jfTl5NV44zlJ146qQqEprVCPS+Gz/8OS3pHwKBAWtQrppla1KzGuVvbGIVfVlsyNVlb3Z0TMNPOugYDlMJBgmr3GWAbKvuOXYSlralQdUGFUPZzU7I5kFaFV2eDfDMJQXBwhrCT+l4fEx2wZlXt61Qnl3On7CplxyqZzjeSzROC+jTsC3BSxw+5Hvt7f3/0hDbyrsl9vL+lcojHcxafcpl66LLkSrotg8AEQJw//uXtmvZXH4FfldGbH71I27wqhP9m+zP5uu2ZLapZp3rvbm6G8zbz8nZZjXhzS94GDgkj+cPAm27QtjO5UXlvuuvTL3xkmQq7ce/4/MQrQqyUXLfvvb3z73+73ickz8p9akstDUyb96EjB/sePHisdLpuA7rwqAKXTbLx9HrZbUKFW+7E4ODw8PPwe8/d+/1bblncu/cPIkYT96u707oU4wDKHGNwjruuGGHz99cqZW7wtza1WMZcPDw8PhvcDv//s57cn8gbbP8FhuC3z1pR5Vce/qW4V3l1vdXzz18BtV2buEpLzFzjKQXnQHKfvRL33sx48Wr716eYi78KobNjz5zZOztP5ZQ6s2ecuwzkNsbVtO/csLxTnmrzu6LrjM/UXzvz493d6r5rAXSwo8FpdueeWOVC47No3De/G2aC63/weeBWvVNnbdMZzLHX12U/mc6Ob+VC770r20vpZUkiUgGK/zMFJq+kiw7DZO4ncnFq5Vk5CQlfL7B6dd63Aw/NGdqLMllYDXCcZnRnSC8ZkTHXgdeB14XXTgz15pAODXYaizLCPtBOhv1JGos5DG1xsAg0tHou7AN+kLKH0BdW7J/x8m/X3oprnf/QAAAABJRU5ErkJggg==";
+  const isStdSheet = () => S.tpl.type === "default" || (Number(S.tpl.q) === 20 && Number(S.tpl.o) === 4 && Number(S.tpl.c) === 2);
+  function sheetSVG(q, o, c) {
+    q = Math.max(1, Math.min(100, Number(q) || 1));
+    const rows = Math.ceil(q / c), bw = 52 + o * 26 + 14, W = Math.max(c * bw + 24, 300), top = 118, H = top + rows * 24 + 14;
+    const f = ' font-family="\'Times New Roman\',Times,serif" fill="currentColor"';
+    let s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Sheet preview"><rect x="1.5" y="1.5" width="' + (W-3) + '" height="' + (H-3) + '" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
+      '<g' + f + ' font-size="10"><text x="' + W/2 + '" y="15" text-anchor="middle">QUIZ – OMR ANSWER SHEET</text>' +
+      '<text x="6" y="28">INSTRUCTIONS: Write all details in CAPITAL LETTERS</text><text x="6" y="40">only. DARKEN only ONE circle for each question</text></g>' +
+      '<g' + f + ' font-size="10" font-weight="700"><text x="6" y="56">STUDENT’S NAME:</text><text x="6" y="71">CLASS &amp; SECTION:</text><text x="6" y="86">HOUSE:</text></g>' +
+      '<g stroke="currentColor" stroke-width="1"><line x1="92" y1="57" x2="' + (W-8) + '" y2="57"/><line x1="98" y1="72" x2="' + (W-8) + '" y2="72"/><line x1="48" y1="87" x2="' + (W-8) + '" y2="87"/></g>';
+    for (let k = 0; k < c; k++) {
+      const x0 = 8 + k * bw;
+      s += '<g' + f + ' font-size="10" font-weight="700"><text x="' + x0 + '" y="108">Q. No.</text>';
+      for (let j = 0; j < o; j++) s += '<text x="' + (x0 + 52 + j*26) + '" y="108" text-anchor="middle">' + L(j) + "</text>";
+      s += "</g>";
+    }
+    for (let i = 0; i < q; i++) {
+      const col = Math.floor(i / rows), r = i % rows, x0 = 8 + col * bw, y = top + 8 + r * 24;
+      s += '<text' + f + ' font-size="10" font-weight="700" x="' + (x0 + 14) + '" y="' + (y+3) + '" text-anchor="middle">' + String(i+1).padStart(2,"0") + "</text>";
+      for (let j = 0; j < o; j++) s += '<circle cx="' + (x0 + 52 + j*26) + '" cy="' + y + '" r="8" fill="none" stroke="currentColor" stroke-width="1.2"/>';
+    }
+    return s + "</svg>";
+  }
+  function step2() {
+    const t = S.tpl, cu = t.type === "custom";
+    $("step").innerHTML = '<h2>Select OMR template</h2>' +
+      '<button class="opt" role="radio" aria-checked="' + !cu + '" data-t="default"><span class="radio"></span><span><b>Standard 20-question template</b><span class="d">2 columns, options A–D. Name, class and house fields on top.</span></span></button>' +
+      '<button class="opt" role="radio" aria-checked="' + cu + '" data-t="custom"><span class="radio"></span><span><b>Custom template</b><span class="d">Choose the number of questions, options and columns.</span></span></button>' +
+      (cu ? '<div class="card"><div class="grid2"><div><label for="c-q">Questions</label><input id="c-q" inputmode="numeric" value="' + esc(t.q) + '" /></div>' +
+        '<div><label for="c-o">Options</label><select id="c-o"><option value="4"' + (t.o==4?" selected":"") + '>A–D</option><option value="5"' + (t.o==5?" selected":"") + '>A–E</option></select></div></div>' +
+        '<label for="c-c">Columns</label><select id="c-c">' + [1,2,3,4].map(n => '<option value="' + n + '"' + (t.c==n?" selected":"") + ">" + n + "</option>").join("") + '</select></div>' : "") +
+      '<div class="preview" id="pv"></div><div class="card" style="margin-top:14px"><label for="pl">Print layout (A4 page)</label><select id="pl">' +
+      [["1","1 sheet per A4 page"],["2","2 sheets per A4 page"],["4","4 sheets per A4 page"],["6","6 sheets per A4 page"]].map(o => '<option value="' + o[0] + '"' + ((S.pl || "1") === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("") +
+      '</select><p class="hint">Print the PDF at 100% scale, then cut along the dashed lines.</p><button class="btn" id="dl-pdf" type="button" style="margin-top:12px">Print / Download PDF</button>' +
+      '<button class="btn ghost" id="dl-png" type="button" style="margin-top:10px">Download PNG</button></div>';
+    $("pl").onchange = e => { S.pl = e.target.value; };
+    $("dl-pdf").onclick = downloadPdf; $("dl-png").onclick = downloadPng;
+    document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+      const custom = b.dataset.t === "custom";
+      S.tpl = custom ? { type:"custom", q:S.tpl.q, o:S.tpl.o, c:S.tpl.c } : { type:"default", q:20, o:4, c:2 };
+      step2();
+    });
+    if (cu) {
+      $("c-q").oninput = e => { S.tpl.q = e.target.value; pv(); };
+      $("c-o").onchange = e => { S.tpl.o = Number(e.target.value); pv(); };
+      $("c-c").onchange = e => { S.tpl.c = Number(e.target.value); pv(); };
+    }
+    pv();
+  }
+  /* ---- print: render the selected sheet, then make a PNG or an A4 PDF (no outside libraries) ---- */
+  function sheetCanvas() {
+    return new Promise((res, rej) => {
+      const img = new Image(); img.onerror = rej;
+      const paint = (w, hh) => { const c = document.createElement("canvas"); c.width = w; c.height = hh; const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, w, hh); g.drawImage(img, 0, 0, w, hh); return c; };
+      if (isStdSheet()) { img.onload = () => res(paint(img.width, img.height)); img.src = TPL_IMG; return; }
+      const svg = sheetSVG(S.tpl.q, S.tpl.o, S.tpl.c), m = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/), w = +m[1], hh = +m[2], k = 4;
+      const x = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="' + w * k + '" height="' + hh * k + '" color="#000" ');
+      img.onload = () => res(paint(w * k, hh * k)); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(x);
+    });
+  }
+  function saveBlob(b, ext) {
+    const nm = (S.name.trim() || "omr-sheet").replace(/[^\w-]+/g, "_"), a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = nm + "_blank_sheet." + ext; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function downloadPng() { sheetCanvas().then(c => c.toBlob(b => saveBlob(b, "png"), "image/png")).catch(() => toast("Couldn’t prepare the sheet.")); }
+  function downloadPdf() {
+    sheetCanvas().then(c => {
+      const n = Number(S.pl || 1), grid = { 1:[1,1], 2:[1,2], 4:[2,2], 6:[2,3] }[n], PW = 595.28, PH = 841.89, M = 24, cw = (PW - 2 * M) / grid[0], ch = (PH - 2 * M) / grid[1];
+      const s = Math.min((cw - 16) / c.width, (ch - 16) / c.height), w = c.width * s, hh = c.height * s;
+      let ops = "";
+      for (let r = 0; r < grid[1]; r++) for (let k = 0; k < grid[0]; k++)
+        ops += "q " + w.toFixed(2) + " 0 0 " + hh.toFixed(2) + " " + (M + k * cw + (cw - w) / 2).toFixed(2) + " " + (PH - M - (r + 1) * ch + (ch - hh) / 2).toFixed(2) + " cm /Im0 Do Q\n";
+      if (n > 1) { ops += "0.6 G 0.6 w [4 3] 0 d\n";
+        for (let k = 1; k < grid[0]; k++) ops += (M + k * cw).toFixed(2) + " " + M + " m " + (M + k * cw).toFixed(2) + " " + (PH - M).toFixed(2) + " l S\n";
+        for (let r = 1; r < grid[1]; r++) ops += M + " " + (PH - M - r * ch).toFixed(2) + " m " + (PW - M).toFixed(2) + " " + (PH - M - r * ch).toFixed(2) + " l S\n"; }
+      const bin = atob(c.toDataURL("image/jpeg", 0.92).split(",")[1]), jpg = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) jpg[i] = bin.charCodeAt(i);
+      const enc = new TextEncoder(), parts = [], off = []; let pos = 0;
+      const put = d => { const u = typeof d === "string" ? enc.encode(d) : d; parts.push(u); pos += u.length; };
+      const obj = (i, body) => { off[i] = pos; put(i + " 0 obj\n" + body + "\nendobj\n"); };
+      put("%PDF-1.4\n");
+      obj(1, "<< /Type /Catalog /Pages 2 0 R >>"); obj(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+      obj(3, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + PW + " " + PH + "] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>");
+      obj(4, "<< /Length " + ops.length + " >>\nstream\n" + ops + "endstream");
+      off[5] = pos; put("5 0 obj\n<< /Type /XObject /Subtype /Image /Width " + c.width + " /Height " + c.height + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + jpg.length + " >>\nstream\n"); put(jpg); put("\nendstream\nendobj\n");
+      const xr = pos; put("xref\n0 6\n0000000000 65535 f \n" + [1,2,3,4,5].map(i => String(off[i]).padStart(10, "0") + " 00000 n \n").join("") + "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xr + "\n%%EOF");
+      saveBlob(new Blob(parts, { type:"application/pdf" }), "pdf");
+    }).catch(() => toast("Couldn’t prepare the PDF."));
+  }
+  function pv() {
+    $("pv").innerHTML = isStdSheet()
+      ? '<img src="' + TPL_IMG + '" alt="Standard 20-question OMR answer sheet" style="width:100%;height:auto;display:block" />'
+      : sheetSVG(S.tpl.q, S.tpl.o, S.tpl.c);
+  }
+
+  /* ---------- step 3: answer key (quick entry, no typing) ---------- */
+  function step3() {
+    const q = Number(S.tpl.q), o = S.tpl.o, first = S.key.findIndex(v => v === null || v === undefined);
+    S.cur = first < 0 ? 0 : first;
+    let rows = "", qb = "", fill = "";
+    for (let j = 0; j < o; j++) { qb += '<button class="qb" type="button" data-o="' + j + '">' + L(j) + "</button>"; fill += '<button class="btn ghost small" type="button" data-fill="' + j + '">' + L(j) + "</button>"; }
+    for (let i = 0; i < q; i++) {
+      rows += '<div class="krow" data-q="' + i + '"><div class="qn" style="cursor:pointer">' + (i+1) + "</div>";
+      for (let j = 0; j < o; j++) rows += '<button class="bub" type="button" data-o="' + j + '" aria-label="Question ' + (i+1) + ", option " + L(j) + '">' + L(j) + "</button>";
+      rows += "</div>";
+    }
+    $("step").innerHTML = '<h2>Configure answer key</h2><p class="hint" style="margin-top:0">Tap an option and it moves to the next question. Nothing is assumed by default.</p>' +
+      '<div class="qpad"><div class="qtop"><span>Question <b id="q-n"></b> of ' + q + '</span><span class="count" id="cnt"></span></div>' +
+      '<div class="qbtns" style="--n:' + o + '">' + qb + '</div>' +
+      '<div class="qnav"><button class="btn ghost small" id="q-prev" type="button">◀ Previous</button><button class="btn ghost small" id="q-skip" type="button">Skip ▶</button></div></div>' +
+      '<div class="fillbar"><span>Fill empty with:</span>' + fill + '<button class="btn ghost small" id="k-clear" type="button">Clear key</button></div>' +
+      '<div id="k-note"></div><div class="card" id="k-list">' + rows + "</div>";
+    $("step").querySelector(".qbtns").onclick = e => {
+      const b = e.target.closest(".qb"); if (!b) return;
+      S.key[S.cur] = Number(b.dataset.o); S.cur = Math.min(S.cur + 1, q - 1); keyUI(true);
+    };
+    $("q-prev").onclick = () => { S.cur = Math.max(0, S.cur - 1); keyUI(true); };
+    $("q-skip").onclick = () => { S.cur = Math.min(q - 1, S.cur + 1); keyUI(true); };
+    $("k-clear").onclick = () => { S.key = S.key.map(() => null); S.cur = 0; keyUI(true); };
+    $("step").querySelector(".fillbar").onclick = e => {
+      const b = e.target.closest("[data-fill]"); if (!b) return;
+      S.key = S.key.map(v => (v === null || v === undefined) ? Number(b.dataset.fill) : v); keyUI(true);
+    };
+    $("k-list").onclick = e => {
+      const row = e.target.closest(".krow"); if (!row) return;
+      const i = Number(row.dataset.q), b = e.target.closest(".bub");
+      if (b) { S.key[i] = Number(b.dataset.o); S.cur = Math.min(i + 1, q - 1); } else S.cur = i;
+      keyUI(true);
+    };
+    keyUI(false);
+  }
+  function keyUI(scroll) {
+    const set = S.key.filter(v => v !== null && v !== undefined), cur = S.key[S.cur];
+    document.querySelectorAll("#k-list .krow").forEach(r => {
+      const i = Number(r.dataset.q), a = S.key[i];
+      r.classList.toggle("cur", i === S.cur);
+      r.querySelectorAll(".bub").forEach(b => b.classList.toggle("on", Number(b.dataset.o) === a));
+    });
+    document.querySelectorAll(".qb").forEach(b => b.classList.toggle("on", Number(b.dataset.o) === cur));
+    $("q-n").textContent = S.cur + 1;
+    const c = $("cnt"); c.textContent = set.length + " / " + S.key.length + " set"; c.classList.toggle("full", set.length === S.key.length);
+    $("k-note").innerHTML = set.length === S.key.length && S.key.length > 1 && set.every(v => v === set[0])
+      ? '<div class="notice">Every question is set to ' + L(set[0]) + ". Confirm this is intentional before saving.</div>" : "";
+    $("err").textContent = "";
+    if (scroll) { const r = document.querySelector('#k-list .krow[data-q="' + S.cur + '"]'); if (r) r.scrollIntoView({ block:"center", behavior:"smooth" }); }
+  }
+
+  /* ---------- step 4: review and save ---------- */
+  function step4() {
+    const t = S.tpl, m = S.m;
+    $("step").innerHTML = '<h2>Review and save</h2><div class="card"><dl>' +
+      "<dt>Examination</dt><dd>" + esc(S.name.trim()) + "</dd>" +
+      "<dt>Marking per question</dt><dd>Correct +" + esc(m.correct) + ", wrong –" + esc(m.wrong) + ", blank " + esc(m.blank) + ", multi-mark " + esc(m.multi) + "</dd>" +
+      "<dt>Template</dt><dd>" + (t.type === "default" ? "Standard 20-question" : "Custom") + " · " + t.q + " questions · A–" + L(t.o-1) + " · " + t.c + " column" + (t.c>1?"s":"") + "</dd>" +
+      "<dt>Results prepared</dt><dd>Overall" + S.groups.filter(g => g.on).map(g => " · " + esc(g.label) + "-wise (" + g.items.map(esc).join(", ") + ")").join("") + "</dd>" +
+      '<dt>Answer key</dt><dd class="keystr">' + S.key.map(v => L(v)).join("") + "</dd></dl></div>" +
+      '<p class="hint">Saving applies this template, answer key and marking scheme to every student in this examination.</p>';
+  }
+  function save() {
+    const all = loadAll(), id = "ex_" + Date.now().toString(36);
+    all.exams.push({ id, name:S.name.trim(), created:new Date().toISOString(),
+      marking:{ correct:Number(S.m.correct), wrong:Number(S.m.wrong), blank:Number(S.m.blank), multi:Number(S.m.multi) },
+      template:{ type:isStdSheet() ? "default" : "custom", questions:Number(S.tpl.q), options:S.tpl.o, columns:S.tpl.c }, key:S.key.slice(), questions:Number(S.tpl.q),
+      groups:S.groups.filter(g => g.on).map(g => ({ id:g.id, label:g.label, items:g.items.slice() })) });
+    const ok = saveAll(all), nm = S.name.trim();
+    showScreen("welcome"); renderList();
+    toast(ok ? "Saved “" + nm + "”." : "Saved for now, but this browser can’t store it. It will be lost when you close the page.");
+  }
+  /* ================= OMR SCANNER ================= */
+    const DEFAULT_TEMPLATE = {
+  id: "universal_20_2col",
+  name: "Standard 20-Question Template (2-Column A–D)",
+  isDefault: true,
+  questionCount: 20,
+  columns: 2,
+  optionsCount: 4,
+  options: ["A", "B", "C", "D"],
+  headers: { name: true, classSection: true, house: true },
+  width: 744,
+  height: 641,
+  rowsY: [0.3986, 0.4610, 0.5250, 0.5881, 0.6505, 0.7137, 0.7777, 0.8417, 0.9041, 0.9680],
+  colsLeftX:  [0.2144, 0.2655, 0.3165, 0.3676],
+  colsRightX: [0.5840, 0.6351, 0.6875, 0.7386],
+  bubbleRadiusNorm: 0.0155,
+  headerRegions: {
+  name:  { x: 0.365, y: 0.148, w: 0.52, h: 0.050 },
+  class: { x: 0.375, y: 0.200, w: 0.51, h: 0.048 },
+  house: { x: 0.170, y: 0.250, w: 0.71, h: 0.048 }
+  }
+  };
+  let SC = null;
+  const AL = { k:1, drag:-1 };
+  const scanSession = { hasImage:false, workingCanvas:document.createElement("canvas"), corners:null, gridOffsetX:0, gridOffsetY:0,
+    markThreshold:28, uncertainThreshold:14, detected:{}, imageHash:"", rect:null, fileName:"" };
+  function getActiveExam() { return SC && SC.exam; }
+  function getActiveTemplate() { return (SC && SC.tpl) || DEFAULT_TEMPLATE; }
+  function getRectCached() { return scanSession.rect || (scanSession.rect = getRectifiedSlipCanvas()); }
+    function getQuestionBubbleCoords(tpl, qNum) {
+  if (tpl.isDefault) {
+  const rowIdx = (qNum - 1) % 10;
+  const colsX = qNum <= 10 ? tpl.colsLeftX : tpl.colsRightX;
+  return {
+  cyNorm: tpl.rowsY[rowIdx],
+  colsXNorm: colsX
+  };
+  }
+  const rowsPerCol = tpl.rowsPerCol || Math.ceil(tpl.questionCount / tpl.columns);
+  const colIdx = Math.min(tpl.columns - 1, Math.floor((qNum - 1) / rowsPerCol));
+  const rowIdx = (qNum - 1) % rowsPerCol;
+  return {
+  cyNorm: tpl.rowsY[rowIdx],
+  colsXNorm: tpl.colOptionX[colIdx]
+  };
+  }
+  function autoDetectSheetBorderCorners() {
+  const wc = scanSession.workingCanvas;
+  if (!wc.width || !wc.height) return;
+  const maxDim = 600;
+  const scale = Math.min(1, maxDim / Math.max(wc.width, wc.height));
+  const sw = Math.max(60, Math.round(wc.width * scale));
+  const sh = Math.max(60, Math.round(wc.height * scale));
+  const tmpCanvas = document.createElement("canvas");
+  tmpCanvas.width = sw;
+  tmpCanvas.height = sh;
+  const tCtx = tmpCanvas.getContext("2d");
+  tCtx.drawImage(wc, 0, 0, sw, sh);
+  const data = tCtx.getImageData(0, 0, sw, sh).data;
+  const gray = new Float32Array(sw * sh);
+  const integral = new Float64Array((sw + 1) * (sh + 1));
+  for (let y = 0; y < sh; y++) {
+  let rowSum = 0;
+  for (let x = 0; x < sw; x++) {
+  const idx = (y * sw + x) * 4;
+  const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+  gray[y * sw + x] = lum;
+  rowSum += lum;
+  integral[(y + 1) * (sw + 1) + (x + 1)] = integral[y * (sw + 1) + (x + 1)] + rowSum;
+  }
+  }
+  const winR = Math.max(8, Math.round(Math.min(sw, sh) * 0.04));
+  const binary = new Uint8Array(sw * sh);
+  for (let y = 0; y < sh; y++) {
+  const y1 = Math.max(0, y - winR);
+  const y2 = Math.min(sh - 1, y + winR);
+  for (let x = 0; x < sw; x++) {
+  const x1 = Math.max(0, x - winR);
+  const x2 = Math.min(sw - 1, x + winR);
+  const count = (x2 - x1 + 1) * (y2 - y1 + 1);
+  const sum =
+  integral[(y2 + 1) * (sw + 1) + (x2 + 1)] -
+  integral[y1 * (sw + 1) + (x2 + 1)] -
+  integral[(y2 + 1) * (sw + 1) + x1] +
+  integral[y1 * (sw + 1) + x1];
+  const localMean = sum / count;
+  if (gray[y * sw + x] < localMean - 14 && gray[y * sw + x] < 195) {
+  binary[y * sw + x] = 1;
+  }
+  }
+  }
+  let topY = Math.round(sh * 0.01);
+  let botY = Math.round(sh * 0.99);
+  let leftX = Math.round(sw * 0.01);
+  let rightX = Math.round(sw * 0.99);
+  for (let y = Math.round(sh * 0.005); y < Math.floor(sh * 0.42); y++) {
+  let run = 0, maxRun = 0, totalDark = 0;
+  for (let x = Math.round(sw * 0.02); x < Math.round(sw * 0.98); x++) {
+  if (binary[y * sw + x] || (y + 1 < sh && binary[(y + 1) * sw + x])) {
+  run++;
+  totalDark++;
+  if (run > maxRun) maxRun = run;
+  } else {
+  run = 0;
+  }
+  }
+  if (maxRun > sw * 0.32 || totalDark > sw * 0.48) {
+  topY = y;
+  break;
+  }
+  }
+  for (let y = Math.round(sh * 0.995) - 1; y > Math.floor(sh * 0.58); y--) {
+  let run = 0, maxRun = 0, totalDark = 0;
+  for (let x = Math.round(sw * 0.02); x < Math.round(sw * 0.98); x++) {
+  if (binary[y * sw + x] || (y - 1 >= 0 && binary[(y - 1) * sw + x])) {
+  run++;
+  totalDark++;
+  if (run > maxRun) maxRun = run;
+  } else {
+  run = 0;
+  }
+  }
+  if (maxRun > sw * 0.32 || totalDark > sw * 0.48) {
+  botY = y;
+  break;
+  }
+  }
+  const spanH = Math.max(20, botY - topY);
+  for (let x = Math.round(sw * 0.005); x < Math.floor(sw * 0.42); x++) {
+  let run = 0, maxRun = 0, totalDark = 0;
+  for (let y = topY; y <= botY; y++) {
+  if (binary[y * sw + x] || (x + 1 < sw && binary[y * sw + (x + 1)])) {
+  run++;
+  totalDark++;
+  if (run > maxRun) maxRun = run;
+  } else {
+  run = 0;
+  }
+  }
+  if (maxRun > spanH * 0.32 || totalDark > spanH * 0.48) {
+  leftX = x;
+  break;
+  }
+  }
+  for (let x = Math.round(sw * 0.995) - 1; x > Math.floor(sw * 0.58); x--) {
+  let run = 0, maxRun = 0, totalDark = 0;
+  for (let y = topY; y <= botY; y++) {
+  if (binary[y * sw + x] || (x - 1 >= 0 && binary[y * sw + (x - 1)])) {
+  run++;
+  totalDark++;
+  if (run > maxRun) maxRun = run;
+  } else {
+  run = 0;
+  }
+  }
+  if (maxRun > spanH * 0.32 || totalDark > spanH * 0.48) {
+  rightX = x;
+  break;
+  }
+  }
+  function refineCorner(targetX, targetY, dirX, dirY) {
+  const searchR = Math.round(Math.min(sw, sh) * 0.12);
+  let bestX = targetX;
+  let bestY = targetY;
+  let bestScore = -1e9;
+  const xMin = Math.max(1, targetX - searchR);
+  const xMax = Math.min(sw - 2, targetX + searchR);
+  const yMin = Math.max(1, targetY - searchR);
+  const yMax = Math.min(sh - 2, targetY + searchR);
+  for (let y = yMin; y <= yMax; y++) {
+  for (let x = xMin; x <= xMax; x++) {
+  if (!binary[y * sw + x]) continue;
+  let hNeighbors = 0, vNeighbors = 0;
+  for (let k = 1; k <= 8; k++) {
+  const nx = x - dirX * k;
+  const ny = y - dirY * k;
+  if (nx >= 0 && nx < sw && (binary[y * sw + nx] || (y + 1 < sh && binary[(y + 1) * sw + nx]))) hNeighbors++;
+  if (ny >= 0 && ny < sh && (binary[ny * sw + x] || (x + 1 < sw && binary[ny * sw + (x + 1)]))) vNeighbors++;
+  }
+  if (hNeighbors >= 4 && vNeighbors >= 4) {
+  const score = dirX * x + dirY * y + (hNeighbors + vNeighbors) * 2;
+  if (score > bestScore) {
+  bestScore = score;
+  bestX = x;
+  bestY = y;
+  }
+  }
+  }
+  }
+  return {
+  x: Math.round(bestX / scale),
+  y: Math.round(bestY / scale)
+  };
+  }
+  const tl = refineCorner(leftX, topY, -1, -1);
+  const tr = refineCorner(rightX, topY, 1, -1);
+  const br = refineCorner(rightX, botY, 1, 1);
+  const bl = refineCorner(leftX, botY, -1, 1);
+  scanSession.corners = [tl, tr, br, bl];
+  scanSession.gridOffsetX = 0;
+  scanSession.gridOffsetY = 0;
+  }
+  function computeHomographyMatrix(W, H, corners) {
+  const [tl, tr, br, bl] = corners;
+  const srcPts = [
+  [0, 0],
+  [W - 1, 0],
+  [W - 1, H - 1],
+  [0, H - 1]
+  ];
+  const dstPts = [
+  [tl.x, tl.y],
+  [tr.x, tr.y],
+  [br.x, br.y],
+  [bl.x, bl.y]
+  ];
+  const A = [];
+  for (let i = 0; i < 4; i++) {
+  const [x, y] = srcPts[i];
+  const [u, v] = dstPts[i];
+  A.push([x, y, 1, 0, 0, 0, -u * x, -u * y, u]);
+  A.push([0, 0, 0, x, y, 1, -v * x, -v * y, v]);
+  }
+  const n = 8;
+  for (let i = 0; i < n; i++) {
+  let maxRow = i;
+  for (let k = i + 1; k < n; k++) {
+  if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+  }
+  const tmp = A[i];
+  A[i] = A[maxRow];
+  A[maxRow] = tmp;
+  const pivot = A[i][i];
+  if (Math.abs(pivot) < 1e-10) continue;
+  for (let j = i; j <= n; j++) A[i][j] /= pivot;
+  for (let k = 0; k < n; k++) {
+  if (k !== i) {
+  const factor = A[k][i];
+  for (let j = i; j <= n; j++) A[k][j] -= factor * A[i][j];
+  }
+  }
+  }
+  const h = A.map(row => row[n]);
+  return [h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], 1];
+  }
+  function getRectifiedSlipCanvas() {
+  const tpl = getActiveTemplate();
+  const rectCanvas = document.createElement("canvas");
+  rectCanvas.width = tpl.width;
+  rectCanvas.height = tpl.height;
+  const rCtx = rectCanvas.getContext("2d");
+  const wc = scanSession.workingCanvas;
+  if (!wc.width || !wc.height) return rectCanvas;
+  const srcCtx = wc.getContext("2d");
+  const srcData = srcCtx.getImageData(0, 0, wc.width, wc.height).data;
+  const dstImgData = rCtx.createImageData(tpl.width, tpl.height);
+  const dstData = dstImgData.data;
+  const W = tpl.width;
+  const H = tpl.height;
+  const sw = wc.width;
+  const sh = wc.height;
+  const Hmat = computeHomographyMatrix(W, H, scanSession.corners);
+  for (let y = 0; y < H; y++) {
+  for (let x = 0; x < W; x++) {
+  const denom = Hmat[6] * x + Hmat[7] * y + 1.0;
+  const sx = Math.min(sw - 1, Math.max(0, Math.round((Hmat[0] * x + Hmat[1] * y + Hmat[2]) / denom)));
+  const sy = Math.min(sh - 1, Math.max(0, Math.round((Hmat[3] * x + Hmat[4] * y + Hmat[5]) / denom)));
+  const sIdx = (sy * sw + sx) * 4;
+  const dIdx = (y * W + x) * 4;
+  dstData[dIdx]     = srcData[sIdx];
+  dstData[dIdx + 1] = srcData[sIdx + 1];
+  dstData[dIdx + 2] = srcData[sIdx + 2];
+  dstData[dIdx + 3] = 255;
+  }
+  }
+  rCtx.putImageData(dstImgData, 0, 0);
+  return rectCanvas;
+  }
+  function runOpticalBubbleDetection() {
+  const exam = getActiveExam();
+  const tpl = getActiveTemplate();
+  if (!exam || !scanSession.hasImage || !scanSession.workingCanvas.width) return;
+  const rectCanvas = getRectCached();
+  const ctx = rectCanvas.getContext("2d");
+  const W = rectCanvas.width;
+  const H = rectCanvas.height;
+  const imgData = ctx.getImageData(0, 0, W, H).data;
+  const lumBuf = new Float32Array(W * H);
+  for (let i = 0, p = 0; i < lumBuf.length; i++, p += 4) {
+  lumBuf[i] = 0.299 * imgData[p] + 0.587 * imgData[p + 1] + 0.114 * imgData[p + 2];
+  }
+  const qCount = tpl.questionCount || 20;
+  const options = tpl.options || ["A", "B", "C", "D"];
+  const rNominal = tpl.bubbleRadiusNorm * W;
+  const rInner = Math.max(4, Math.round(rNominal * 0.68)); // Inner core excludes printed ring outline
+  const rBgInner = Math.round(rNominal * 1.35);
+  const rBgOuter = Math.round(rNominal * 1.95);
+  let bestShiftX = 0;
+  let bestShiftY = 0;
+  let bestShiftContrast = -1;
+  for (let sdy = -10; sdy <= 10; sdy += 2) {
+  for (let sdx = -10; sdx <= 10; sdx += 2) {
+  let contrastScore = 0;
+  for (let q = 1; q <= qCount; q++) {
+  const coords = getQuestionBubbleCoords(tpl, q);
+  const cy = Math.round(coords.cyNorm * H) + sdy;
+  for (let cIdx = 0; cIdx < options.length; cIdx++) {
+  const cx = Math.round(coords.colsXNorm[cIdx] * W) + sdx;
+  let ringDark = 0, ringCnt = 0;
+  for (let a = 0; a < 8; a++) {
+  const ang = (a * Math.PI) / 4;
+  const rx = Math.round(cx + Math.cos(ang) * rNominal);
+  const ry = Math.round(cy + Math.sin(ang) * rNominal);
+  if (rx >= 0 && rx < W && ry >= 0 && ry < H) {
+  ringDark += 255 - lumBuf[ry * W + rx];
+  ringCnt++;
+  }
+  }
+  if (ringCnt > 0) contrastScore += ringDark / ringCnt;
+  }
+  }
+  if (contrastScore > bestShiftContrast) {
+  bestShiftContrast = contrastScore;
+  bestShiftX = sdx;
+  bestShiftY = sdy;
+  }
+  }
+  }
+  scanSession.gridOffsetX = bestShiftX;
+  scanSession.gridOffsetY = bestShiftY;
+  const markThresh = scanSession.markThreshold;
+  const uncertainFloor = scanSession.uncertainThreshold;
+  const newDetected = {};
+  let hashBuilder = [];
+  for (let q = 1; q <= qCount; q++) {
+  const coords = getQuestionBubbleCoords(tpl, q);
+  const baseCy = Math.round(coords.cyNorm * H) + bestShiftY;
+  const bgSamples = [];
+  options.forEach((opt, cIdx) => {
+  const baseCx = Math.round(coords.colsXNorm[cIdx] * W) + bestShiftX;
+  for (let dy = -rBgOuter; dy <= rBgOuter; dy += 2) {
+  for (let dx = -rBgOuter; dx <= rBgOuter; dx += 2) {
+  const distSq = dx * dx + dy * dy;
+  if (distSq >= rBgInner * rBgInner && distSq <= rBgOuter * rBgOuter) {
+  const px = baseCx + dx;
+  const py = baseCy + dy;
+  if (px >= 0 && px < W && py >= 0 && py < H) {
+  bgSamples.push(lumBuf[py * W + px]);
+  }
+  }
+  }
+  }
+  });
+  bgSamples.sort((a, b) => a - b);
+  const localPaperLum = bgSamples.length > 0
+  ? bgSamples[Math.min(bgSamples.length - 1, Math.floor(bgSamples.length * 0.78))]
+  : 215;
+  const fills = {};
+  options.forEach((opt, cIdx) => {
+  const baseCx = Math.round(coords.colsXNorm[cIdx] * W) + bestShiftX;
+  let maxFillScore = 0;
+  for (let jdy = -3; jdy <= 3; jdy += 3) {
+  for (let jdx = -3; jdx <= 3; jdx += 3) {
+  const cx = baseCx + jdx;
+  const cy = baseCy + jdy;
+  let relDropSum = 0;
+  let darkPixels = 0;
+  let pixelCount = 0;
+  for (let dy = -rInner; dy <= rInner; dy++) {
+  for (let dx = -rInner; dx <= rInner; dx++) {
+  if (dx * dx + dy * dy <= rInner * rInner) {
+  const px = cx + dx;
+  const py = cy + dy;
+  if (px >= 0 && px < W && py >= 0 && py < H) {
+  const lum = lumBuf[py * W + px];
+  const drop = Math.max(0, localPaperLum - lum);
+  const normDrop = Math.min(1, drop / Math.max(45, localPaperLum * 0.62));
+  relDropSum += normDrop;
+  if (drop > Math.max(22, localPaperLum * 0.16)) {
+  darkPixels++;
+  }
+  pixelCount++;
+  }
+  }
+  }
+  }
+  if (pixelCount > 0) {
+  const intensityPct = (relDropSum / pixelCount) * 100;
+  const areaCoveragePct = (darkPixels / pixelCount) * 100;
+  const combinedFill = Math.round(intensityPct * 0.55 + areaCoveragePct * 0.45);
+  if (combinedFill > maxFillScore) {
+  maxFillScore = combinedFill;
+  }
+  }
+  }
+  }
+  fills[opt] = Math.min(100, maxFillScore);
+  });
+  const sortedOpts = [...options].sort((a, b) => fills[b] - fills[a]);
+  const topOpt = sortedOpts[0];
+  const secondOpt = sortedOpts[1];
+  const topFill = fills[topOpt];
+  const secondFill = secondOpt ? fills[secondOpt] : 0;
+  const markedOpts = options.filter(o => fills[o] >= markThresh);
+  const rowFills = options.map(o => fills[o]).sort((a, b) => a - b), rowMedian = rowFills[Math.floor(rowFills.length / 2)];
+    const faintOpts = options.filter(o => fills[o] >= uncertainFloor && fills[o] < markThresh && fills[o] - rowMedian >= 8); // ignore the printed ring shared by every bubble in the row
+  let status = "BLANK";
+  let selected = null;
+  let reviewed = true;
+  if (markedOpts.length > 1) {
+  if (topFill >= markThresh + 15 && secondFill < topFill * 0.48) {
+  status = "MARKED";
+  selected = topOpt;
+  reviewed = true;
+  } else {
+  status = "MULTI";
+  selected = null;
+  reviewed = false;
+  }
+  } else if (markedOpts.length === 1) {
+  selected = markedOpts[0];
+  if (secondFill >= uncertainFloor && secondFill >= topFill * 0.65) {
+  status = "UNCERTAIN";
+  reviewed = false;
+  } else {
+  status = "MARKED";
+  reviewed = true;
+  }
+  } else if (faintOpts.length >= 1) {
+  status = "UNCERTAIN";
+  selected = topOpt;
+  reviewed = false;
+  } else {
+  status = "BLANK";
+  selected = null;
+  reviewed = true;
+  }
+  newDetected[q] = {
+  status,
+  selected,
+  markedOpts,
+  faintOpts,
+  fills,
+  reviewed
+  };
+  hashBuilder.push(`${q}:${status}:${selected || "-"}`);
+  }
+  scanSession.detected = newDetected;
+  scanSession.imageHash = hashBuilder.join("|");
+  }
+
+  const SC_TITLES = ["Upload sheet", "Align sheet", "Student details", "Check answers", "Result"];
+  const pad2 = n => String(n).padStart(2, "0");
+
+  function startScan(id) {
+    const exam = loadAll().exams.find(e => e.id === id);
+    if (!exam) return;
+    SC = { exam, tpl:buildScanTemplate(exam), step:1, ov:{}, sig:"", student:{ name:"", cls:"", house:"", extra:{} }, showAll:false, saved:false };
+    resetImage(); showScreen("scan"); scRender();
+  }
+  function resetImage() {
+    const wc = scanSession.workingCanvas; wc.width = 0; wc.height = 0;
+    Object.assign(scanSession, { hasImage:false, corners:null, rect:null, detected:{}, fileName:"" });
+    if (SC) { SC.ov = {}; SC.sig = ""; }
+  }
+  function scRender() {
+    $("sc-prog").innerHTML = [1,2,3,4,5].map(i => '<div class="dot ' + (i < SC.step ? "done" : i === SC.step ? "now" : "") + '">' + (i < SC.step ? "✓" : i) + "</div>" + (i < 5 ? '<div class="line"></div>' : "")).join("");
+    $("sc-kicker").textContent = "Step " + SC.step + " of 5 · " + SC_TITLES[SC.step - 1];
+    $("sc-next").textContent = SC.step === 5 ? "Save data" : "Next";
+    $("sc-bar").hidden = false; $("sc-err").textContent = "";
+    [null, pg1, pg2, pg3, pg4, pg5][SC.step]();
+    window.scrollTo(0, 0);
+  }
+  $("sc-back").onclick = () => {
+    if (SC.step === 1) { renderList(); showScreen("welcome"); } else { SC.step--; scRender(); }
+  };
+  $("sc-next").onclick = () => {
+    const s = SC.step; let msg = "";
+    if (s === 1 && !scanSession.hasImage) msg = "Add a photo of the sheet first.";
+    if (s === 3) { SC.student.name = $("s-name").value.trim();
+      if (!SC.student.name.trim()) msg = "Enter the student’s name."; else { const miss = (SC.exam.groups || []).filter(g => g.items && g.items.length && !gVal(g.id) && !(SC.student.skip || {})[g.id]); if (miss.length) msg = "Choose " + miss.map(g => g.label).join(", ") + " (or None)."; } }
+    if (s === 4 && unresolved().length) msg = "Check the highlighted questions first.";
+    $("sc-err").textContent = msg; if (msg) return;
+    if (s === 5) return saveRec();
+    if (s === 1) { SC.step = 2; scanSession.rect = null; return scRender(); }
+    if (s === 2) scanSession.rect = null;
+    SC.step++; scRender();
+  };
+
+
+  /* ---- any template: geometry from the exam's template (same layout as the sheet preview) ---- */
+  function buildScanTemplate(ex) {
+    const t = ex.template;
+    if (!t || t.type !== "custom" || (Number(t.questions) === 20 && Number(t.options) === 4 && Number(t.columns) === 2)) return DEFAULT_TEMPLATE;
+    const q = t.questions, o = t.options, c = t.columns, rows = Math.ceil(q / c), bw = 52 + o * 26 + 14, W = Math.max(c * bw + 24, 300), top = 118, H = top + rows * 24 + 14;
+    return { id:"custom", isDefault:false, questionCount:q, columns:c, rowsPerCol:rows, options:Array.from({ length:o }, (_, j) => L(j)), width:744, height:Math.round(744 * H / W),
+      bubbleRadiusNorm:8 / W, rowsY:Array.from({ length:rows }, (_, r) => (top + 8 + r * 24) / H),
+      colOptionX:Array.from({ length:c }, (_, k) => Array.from({ length:o }, (_, j) => (8 + k * bw + 52 + j * 26) / W)),
+      headerRegions:{ name:{ x:92/W, y:45/H, w:(W-100)/W, h:14/H }, class:{ x:98/W, y:60/H, w:(W-106)/W, h:14/H }, house:{ x:48/W, y:75/H, w:(W-56)/W, h:14/H } } };
+  }
+
+  /* ---- live viewfinder with a placement guide ---- */
+  let VF = null;
+  const tplCols = t => t.isDefault ? [t.colsLeftX, t.colsRightX] : t.colOptionX;
+  function vfBlueprint(t) {
+    const cols = tplCols(t), rpc = t.rowsPerCol || Math.ceil(t.questionCount / cols.length), p = v => (Math.max(0, v) * 100).toFixed(2) + "%", hr = t.headerRegions;
+    const hx = Math.min(hr.name.x, hr.class.x, hr.house.x), hy = hr.name.y, hw = Math.max(hr.name.x + hr.name.w, hr.class.x + hr.class.w, hr.house.x + hr.house.w) - hx, hh = hr.house.y + hr.house.h - hy;
+    const box = (x, y, w, h, label) => '<div class="vz" style="left:' + p(x) + ";top:" + p(y) + ";width:" + p(w) + ";height:" + p(h) + '"><span>' + label + "</span></div>";
+    let s = '<div class="vtag">▲ TOP OF OMR SHEET (KEEP UPRIGHT) ▲</div><i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i>' + box(hx - 0.02, hy - 0.025, hw + 0.04, hh + 0.05, "STUDENT DETAILS");
+    cols.forEach((xs, k) => {
+      const x0 = xs[0] - 0.05, x1 = xs[xs.length - 1] + 0.04, y0 = t.rowsY[0] - 0.045, y1 = t.rowsY[t.rowsY.length - 1] + 0.03;
+      s += box(x0, y0, x1 - x0, y1 - y0, "Q" + pad2(k * rpc + 1) + "–" + pad2(Math.min(t.questionCount, (k + 1) * rpc)));
+    });
+    return s;
+  }
+  function layoutVf() {
+    if (!VF) return; const t = getActiveTemplate(), W = innerWidth, H = innerHeight, ar = t.width / t.height, aw = W * 0.9, ah = H - 200;
+    const w = Math.min(aw, ah * ar), h = w / ar, l = (W - w) / 2, tp = 70 + (ah - h) / 2, f = $("vf-frame");
+    f.style.cssText = "left:" + l + "px;top:" + tp + "px;width:" + w + "px;height:" + h + "px"; VF.frame = { l, t:tp, w, h };
+  }
+  function nativeCam(msg) { toast(msg); const i = $("f-cam"); if (i) i.click(); }
+  async function openViewfinder() {
+    let stream = null, why = "";
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+      why = window.isSecureContext === false ? "This page isn’t opened securely, so the browser hides the live camera." : "This viewer doesn’t offer a live camera.";
+    else for (const v of [{ facingMode:{ ideal:"environment" }, width:{ ideal:1920 }, height:{ ideal:1080 } }, { facingMode:"environment" }, true]) {
+      try { stream = await navigator.mediaDevices.getUserMedia({ video:v, audio:false }); break; }
+      catch (e) { why = e && e.name === "NotAllowedError" ? "Camera permission is blocked for this page." : "The live camera couldn’t start (" + ((e && e.name) || "error") + ")."; if (e && e.name === "NotAllowedError") break; }
+    }
+    const live = !!stream; VF = { stream, frame:null };
+    $("vf-video").srcObject = stream; $("vf-video").hidden = !live; $("vf-snap").hidden = !live; $("vf").classList.toggle("guide", !live);
+    $("vf-msg").textContent = live ? "Fit the 4 black corners of the sheet inside the yellow brackets. Keep the top upright." : why + " Place the sheet like this frame, then open the device camera.";
+    $("vf-dev").textContent = live ? "Device camera" : "Open device camera"; $("vf-dev").style.flex = live ? "" : "1";
+    $("vf-frame").innerHTML = vfBlueprint(getActiveTemplate()); $("vf").hidden = false; document.body.style.overflow = "hidden"; layoutVf();
+  }
+  function closeViewfinder() {
+    if (VF && VF.stream) VF.stream.getTracks().forEach(t => t.stop());
+    $("vf-video").srcObject = null; $("vf").hidden = true; document.body.style.overflow = ""; VF = null;
+  }
+  function vfSnap() {
+    const v = $("vf-video"), vw = v.videoWidth, vh = v.videoHeight; if (!vw || !VF || !VF.frame) return;
+    const W = innerWidth, H = innerHeight, k = Math.max(W / vw, H / vh), ox = (vw * k - W) / 2, oy = (vh * k - H) / 2, f = VF.frame, m = 0.07;
+    const x0 = Math.max(0, f.l - f.w * m), y0 = Math.max(0, f.t - f.h * m), x1 = Math.min(W, f.l + f.w * (1 + m)), y1 = Math.min(H, f.t + f.h * (1 + m));
+    const sx = (x0 + ox) / k, sy = (y0 + oy) / k, sw = (x1 - x0) / k, sh = (y1 - y0) / k, c = document.createElement("canvas");
+    c.width = Math.round(sw); c.height = Math.round(sh); c.getContext("2d").drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
+    c.toBlob(b => { closeViewfinder(); if (b) loadFile(new File([b], "camera-" + Date.now() + ".jpg", { type:"image/jpeg" })); }, "image/jpeg", 0.92);
+  }
+  $("vf-x").onclick = closeViewfinder; $("vf-snap").onclick = vfSnap;
+  $("vf-dev").onclick = () => { closeViewfinder(); const i = $("f-cam"); if (i) i.click(); };
+  addEventListener("resize", layoutVf); addEventListener("keydown", e => { if (e.key === "Escape" && VF) closeViewfinder(); });
+
+  /* ---- page 1: upload ---- */
+  function pg1() {
+    $("sc-step").innerHTML = '<h2>Upload OMR sheet</h2><p class="hint" style="margin-top:0">Exam: <b>' + esc(SC.exam.name) + '</b> · ' + (SC.exam.template && SC.exam.template.type === "custom" ? SC.exam.questions + "-question custom sheet" : "Standard 20-question sheet") + '</p>' +
+      '<div class="pick"><button class="btn" id="b-cam" type="button">Take photo</button><button class="btn ghost" id="b-up" type="button">Upload photo</button></div>' +
+      '<input id="f-cam" type="file" accept="image/*" capture="environment" hidden /><input id="f-up" type="file" accept="image/*" hidden />' +
+      '<div id="p1"></div><ul class="tips"><li>Lay the sheet flat on a dark surface.</li><li>Keep all four corners and the black border in view.</li><li>Use even light with no shadow over the bubbles.</li></ul>';
+    $("b-cam").onclick = openViewfinder; $("b-up").onclick = () => $("f-up").click();
+    $("f-cam").onchange = $("f-up").onchange = e => loadFile(e.target.files[0]);
+    showPrev();
+  }
+  function loadFile(file) {
+    if (!file) return;
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 1500 / Math.max(img.naturalWidth, img.naturalHeight)), wc = scanSession.workingCanvas;
+      wc.width = Math.round(img.naturalWidth * k); wc.height = Math.round(img.naturalHeight * k);
+      wc.getContext("2d").drawImage(img, 0, 0, wc.width, wc.height); URL.revokeObjectURL(url);
+      Object.assign(scanSession, { hasImage:true, corners:null, rect:null, detected:{}, fileName:file.name }); SC.ov = {}; SC.sig = ""; showPrev();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast("Could not read that image."); };
+    img.src = url;
+  }
+  function showPrev() {
+    const box = $("p1"); if (!box) return;
+    if (!scanSession.hasImage) { box.innerHTML = ""; return; }
+    const wc = scanSession.workingCanvas;
+    box.innerHTML = '<canvas id="p1c" class="shot"></canvas><p class="hint">Photo ready (' + wc.width + ' × ' + wc.height + '). Tap Next to align it.</p>';
+    const c = $("p1c"), k = Math.min(1, 700 / wc.width); c.width = Math.round(wc.width * k); c.height = Math.round(wc.height * k);
+    c.getContext("2d").drawImage(wc, 0, 0, c.width, c.height);
+  }
+
+  /* ---- page 2: align ---- */
+  function pg2() {
+    $("sc-step").innerHTML = '<h2>Align the sheet</h2><p class="hint" style="margin-top:0">Drag the four red dots onto the corners of the sheet’s black border.</p>' +
+      '<canvas id="al" class="shot"></canvas><div class="tools"><button class="btn ghost small" id="r-l" type="button">⟲ Rotate</button><button class="btn ghost small" id="r-r" type="button">⟳ Rotate</button>' +
+      '<button class="btn ghost small" id="redet" type="button">Re-detect</button></div>';
+    if (!scanSession.corners) autoDetectSheetBorderCorners();
+    drawAlign(); updateFlat();
+    const c = $("al");
+    const pos = e => { const r = c.getBoundingClientRect(), f = c.width / r.width; return { x:(e.clientX - r.left) * f / AL.k, y:(e.clientY - r.top) * f / AL.k }; };
+    c.onpointerdown = e => {
+      const p = pos(e); let best = -1, bd = 1e9;
+      scanSession.corners.forEach((q, i) => { const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; best = i; } });
+      if (bd * AL.k * (c.getBoundingClientRect().width / c.width) < 60) { AL.drag = best; c.setPointerCapture(e.pointerId); }
+    };
+    c.onpointermove = e => {
+      if (AL.drag < 0) return; const p = pos(e), wc = scanSession.workingCanvas;
+      scanSession.corners[AL.drag] = { x:Math.max(0, Math.min(wc.width - 1, Math.round(p.x))), y:Math.max(0, Math.min(wc.height - 1, Math.round(p.y))) }; drawAlign();
+    };
+    c.onpointerup = c.onpointercancel = () => { if (AL.drag >= 0) { AL.drag = -1; scanSession.rect = null; updateFlat(); } };
+    $("r-l").onclick = () => rot(-1); $("r-r").onclick = () => rot(1);
+    $("redet").onclick = () => { scanSession.corners = null; scanSession.rect = null; autoDetectSheetBorderCorners(); drawAlign(); updateFlat(); };
+  }
+  function drawAlign() {
+    const wc = scanSession.workingCanvas, c = $("al"); if (!c) return;
+    const k = Math.min(1, 900 / wc.width); AL.k = k; c.width = Math.round(wc.width * k); c.height = Math.round(wc.height * k);
+    const x = c.getContext("2d"), p = scanSession.corners; x.drawImage(wc, 0, 0, c.width, c.height);
+    x.lineWidth = 3; x.strokeStyle = "#d63a58"; x.beginPath(); p.forEach((q, i) => x[i ? "lineTo" : "moveTo"](q.x * k, q.y * k)); x.closePath(); x.stroke();
+    p.forEach(q => { x.fillStyle = "#d63a58"; x.beginPath(); x.arc(q.x * k, q.y * k, 11, 0, 6.283); x.fill(); x.strokeStyle = "#fff"; x.lineWidth = 2; x.stroke(); });
+  }
+  function updateFlat() {
+    const f = $("flat"); if (!f) return; const r = getRectCached();
+    f.width = r.width; f.height = r.height; f.getContext("2d").drawImage(r, 0, 0);
+  }
+  function rot(dir) {
+    const wc = scanSession.workingCanvas, t = document.createElement("canvas"); t.width = wc.height; t.height = wc.width;
+    const x = t.getContext("2d"); x.translate(t.width / 2, t.height / 2); x.rotate(dir * Math.PI / 2); x.drawImage(wc, -wc.width / 2, -wc.height / 2);
+    wc.width = t.width; wc.height = t.height; wc.getContext("2d").drawImage(t, 0, 0);
+    scanSession.corners = null; scanSession.rect = null; autoDetectSheetBorderCorners(); drawAlign(); updateFlat();
+  }
+
+  /* ---- page 3: student details (read from header, optional auto-read) ---- */
+  function headerLineTops(r, R) {
+    try {
+      const W = r.width, H = r.height, d = r.getContext("2d").getImageData(0, 0, W, H).data, x0 = Math.round(W * 0.45), x1 = Math.round(W * 0.80), y0 = Math.round(H * 0.06), y1 = Math.round(H * 0.45), n = x1 - x0;
+      const lum = (x, y) => { const i = (y * W + x) * 4; return (d[i] + d[i + 1] + d[i + 2]) / 3; };
+      const smp = []; for (let y = y0; y < y1; y += 3) for (let x = x0; x < x1; x += 3) smp.push(lum(x, y)); smp.sort((a, b) => a - b);
+      const dk = smp[Math.floor(smp.length * 0.9)] * 0.6, f = [];
+      for (let y = y0; y < y1; y++) { let c = 0; for (let x = x0; x < x1; x++) if (lum(x, y - 1) < dk || lum(x, y) < dk || lum(x, y + 1) < dk) c++; f.push(c / n); }
+      const L3 = []; let s = -1;
+      for (let i = 0; i <= f.length; i++) { const on = i < f.length && f[i] >= 0.9; if (on && s < 0) s = i; if (!on && s >= 0) { L3.push(y0 + (s + i - 1) / 2); s = -1; } }
+      const e1 = (R.class.y - R.name.y) * H, e2 = (R.house.y - R.class.y) * H;       // find three lines spaced like the template's
+      let k = -1; for (let i = 0; i + 2 < L3.length && k < 0; i++) if (Math.abs((L3[i + 1] - L3[i]) - e1) <= 0.5 * e1 && Math.abs((L3[i + 2] - L3[i + 1]) - e2) <= 0.5 * e2) k = i;
+      if (k < 0) return {};
+      const T = L3.slice(k, k + 3);
+      const sh = R.name.h * H, top = l => Math.round(l - sh + 2);
+      return { name:top(T[0]), cls:top(T[1]), house:top(T[2]) };
+    } catch (e) { return {}; }
+  }
+  function groupPickers() {
+    const gs = (SC.exam.groups || []).filter(g => g.items && g.items.length); if (!gs.length) return "";
+    return '<div class="card" id="gp-box"><b>Pick from the lists</b><p class="hint" style="margin-top:4px">Choose one in every list, or None if it doesn’t apply.</p>' + gs.map(g => '<label>' + esc(g.label) + '</label><div class="qo">' +
+      g.items.map(it => '<button type="button" class="gpb" data-g="' + esc(g.id) + '" data-v="' + esc(it) + '">' + esc(it) + "</button>").join("") + '<button type="button" class="gpb" data-g="' + esc(g.id) + '" data-v="">None</button></div>').join("") + "</div>";
+  }
+  const gVal = id => id === "class" ? SC.student.cls : id === "house" ? SC.student.house : ((SC.student.extra || {})[id] || "");
+  const gSet = (id, v) => { if (id === "class") SC.student.cls = v; else if (id === "house") SC.student.house = v; else { SC.student.extra = SC.student.extra || {}; SC.student.extra[id] = v; } };
+  function wireGroups() {
+    const box = $("gp-box"); if (!box) return; SC.student.skip = SC.student.skip || {};
+    const paint = () => box.querySelectorAll(".gpb").forEach(b => { const id = b.dataset.g, v = b.dataset.v; b.classList.toggle("on", v === "" ? (!!SC.student.skip[id] && !gVal(id)) : norm2(gVal(id) || "") === norm2(v)); });
+    box.onclick = e => {
+      const b = e.target.closest(".gpb"); if (!b) return; const id = b.dataset.g, v = b.dataset.v;
+      if (v === "") { gSet(id, ""); SC.student.skip[id] = true; } else { gSet(id, gVal(id) && norm2(gVal(id)) === norm2(v) ? "" : v); SC.student.skip[id] = false; }
+      paint();
+    };
+    paint();
+  }
+  function pg3() {
+    const r = getRectCached(), R = getActiveTemplate().headerRegions, hy = headerLineTops(r, R), g = R.name;
+    $("sc-step").innerHTML = '<h2>Student details</h2><p class="hint" style="margin-top:0">Check the name, then pick the class, house or wing from the lists.</p><div class="card"><label for="s-name">Student’s name *</label><canvas class="strip" id="c-name"></canvas>' +
+      '<input id="s-name" value="' + esc(SC.student.name) + '" autocomplete="off" style="text-transform:uppercase" />' +
+      '<div class="tools"><span class="hint" style="margin:0;flex-basis:100%">Strip looks off? Move it:</span><button class="btn ghost small" id="n-up" type="button" aria-label="Move up">▲</button><button class="btn ghost small" id="n-dn" type="button" aria-label="Move down">▼</button>' +
+      '<button class="btn ghost small" id="n-lf" type="button" aria-label="Move left">◀</button><button class="btn ghost small" id="n-rt" type="button" aria-label="Move right">▶</button></div>' +
+      '<button class="btn ghost" id="ocr" type="button" style="margin-top:12px">Auto-read name (beta)</button><p class="hint" id="ocr-msg"></p></div>' + groupPickers();
+    const c = $("c-name"), sw = Math.round(g.w * r.width), sh = Math.round(g.h * r.height);
+    const sx = Math.max(0, Math.min(r.width - sw, Math.round(g.x * r.width) + (SC.hdrDx || 0))), sy = (hy.name !== undefined ? hy.name : Math.round(g.y * r.height)) + (SC.hdrDy || 0);
+    c.width = sw; c.height = sh; c.getContext("2d").drawImage(r, sx, sy, sw, sh, 0, 0, sw, sh);
+    $("s-name").oninput = e => { SC.student.name = e.target.value; };
+    [["n-up", "hdrDy", -6], ["n-dn", "hdrDy", 6], ["n-lf", "hdrDx", -8], ["n-rt", "hdrDx", 8]].forEach(k => { $(k[0]).onclick = () => { SC[k[1]] = (SC[k[1]] || 0) + k[2]; pg3(); }; });
+    wireGroups(); $("ocr").onclick = runOcr;
+  }
+  async function runOcr() {
+    const msg = $("ocr-msg"); msg.textContent = "Loading the reader (needs internet the first time)…";
+    try {
+      if (!window.Tesseract) await new Promise((ok, no) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+      const w = await Tesseract.createWorker("eng");
+      await w.setParameters({ tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ .'-", tessedit_pageseg_mode:"7" });
+      const c = $("c-name"), t = document.createElement("canvas"); t.width = c.width * 2; t.height = c.height * 2; t.getContext("2d").drawImage(c, 0, 0, t.width, t.height);
+      const { data } = await w.recognize(t), v = data.text.replace(/\s+/g, " ").trim();
+      await w.terminate();
+      if (v) { SC.student.name = v; $("s-name").value = v; msg.textContent = "Done. Please check the name."; } else msg.textContent = "Couldn’t read a name. Please type it.";
+    } catch (e) { msg.textContent = "Auto-read isn’t available here. Please type the name."; }
+  }
+
+  /* ---- page 4: preview with markings + check flagged answers ---- */
+  const keyL = () => SC.exam.key.map(v => L(v));
+  function eff(q) {
+    if (SC.ov[q] !== undefined) return SC.ov[q];
+    const d = scanSession.detected[q]; if (!d) return null;
+    return d.status === "MARKED" ? d.selected : d.status === "BLANK" ? "BLANK" : null;
+  }
+  function unresolved() { const r = []; for (let q = 1; q <= SC.exam.questions; q++) if (eff(q) === null) r.push(q); return r; }
+  function detect() { runOpticalBubbleDetection(); SC.ov = {}; SC.sig = JSON.stringify([scanSession.corners, scanSession.markThreshold, scanSession.uncertainThreshold, scanSession.fileName, scanSession.workingCanvas.width]); }
+  function pg4() {
+    const sig = JSON.stringify([scanSession.corners, scanSession.markThreshold, scanSession.uncertainThreshold, scanSession.fileName, scanSession.workingCanvas.width]);
+    if (sig !== SC.sig) detect();
+    $("sc-step").innerHTML = '<h2>Preview of scanned sheet</h2><canvas id="ann" class="shot"></canvas>' +
+      '<div class="legend"><span><i style="background:#1f9d6b"></i>Correct answer</span><span><i style="background:#e0243f"></i>Wrong</span><span><i style="background:#e8a100"></i>Needs check</span><span><i style="background:#8b3fd1"></i>Multi-mark</span></div>' +
+      '<div class="card"><b id="rv-t"></b><div id="rv"></div><button class="btn ghost small" id="all" type="button" style="margin-top:10px"></button></div>' +
+      '<details><summary>Advanced: reading sensitivity</summary><label for="th1">Marked bubble threshold: <span id="v1"></span>%</label><input id="th1" type="range" min="15" max="65" />' +
+      '<label for="th2">Faint mark floor: <span id="v2"></span>%</label><input id="th2" type="range" min="5" max="30" /></details>';
+    $("th1").value = scanSession.markThreshold; $("th2").value = scanSession.uncertainThreshold; $("v1").textContent = $("th1").value; $("v2").textContent = $("th2").value;
+    $("th1").oninput = e => { scanSession.markThreshold = +e.target.value; $("v1").textContent = e.target.value; detect(); refresh(); };
+    $("th2").oninput = e => { scanSession.uncertainThreshold = +e.target.value; $("v2").textContent = e.target.value; detect(); refresh(); };
+    $("all").onclick = () => { SC.showAll = !SC.showAll; refresh(); };
+    $("rv").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; SC.ov[+b.closest(".rv").dataset.q] = b.dataset.v; refresh(); };
+    refresh();
+  }
+  function refresh() {
+    const bad = unresolved(), n = SC.exam.questions, opts = getActiveTemplate().options, qs = [];
+    for (let q = 1; q <= n; q++) if (SC.showAll || bad.includes(q)) qs.push(q);
+    $("rv-t").textContent = bad.length ? bad.length + " question" + (bad.length > 1 ? "s" : "") + " to check" : "All " + n + " questions are clear";
+    $("all").textContent = SC.showAll ? "Show only questions to check" : "Show all " + n + " questions";
+    $("rv").innerHTML = qs.map(q => {
+      const d = scanSession.detected[q], cur = eff(q), note = d.status === "MULTI" ? "two or more marked" : d.status === "UNCERTAIN" ? "faint mark" : d.status === "BLANK" ? "blank" : "clear";
+      const chip = (v, t) => '<button class="chip' + (cur === v ? " on" : "") + (cur === null && d.selected === v ? " hint" : "") + '" data-v="' + v + '" type="button">' + t + "</button>";
+      return '<div class="rv" data-q="' + q + '"><div><b>Q' + pad2(q) + "</b><small>" + note + '</small></div><div class="chips">' + opts.map(o => chip(o, o)).join("") + chip("BLANK", "Blank") + (d.status === "MULTI" ? chip("MULTI", "Multi") : "") + "</div></div>";
+    }).join("") || '<p class="hint">Nothing to check.</p>';
+    drawAnn();
+  }
+  function drawAnn() {
+    const c = $("ann"); if (!c) return;
+    const r = getRectCached(), W = r.width, H = r.height, x = c.getContext("2d"), t = getActiveTemplate(), opts = t.options, rad = t.bubbleRadiusNorm * W * 1.3, key = keyL();
+    c.width = W; c.height = H; x.drawImage(r, 0, 0);
+    const ring = (q, i, col, fill) => {
+      const g = getQuestionBubbleCoords(t, q); x.beginPath(); x.arc(g.colsXNorm[i] * W + scanSession.gridOffsetX, g.cyNorm * H + scanSession.gridOffsetY, rad, 0, 6.283);
+      x.lineWidth = 3; x.strokeStyle = col; x.stroke(); if (fill) { x.fillStyle = col + "40"; x.fill(); }
+    };
+    for (let q = 1; q <= SC.exam.questions; q++) {
+      const e = eff(q), d = scanSession.detected[q], k = key[q - 1]; if (!d) continue;
+      if (k) ring(q, opts.indexOf(k), "#1f9d6b", e === k);
+      if (e === "MULTI") d.markedOpts.forEach(o => ring(q, opts.indexOf(o), "#8b3fd1", true));
+      else if (e && e !== "BLANK" && e !== k) ring(q, opts.indexOf(e), "#e0243f", true);
+      else if (e === null) (d.markedOpts.length ? d.markedOpts : d.faintOpts).forEach(o => ring(q, opts.indexOf(o), "#e8a100", true));
+    }
+  }
+
+  /* ---- page 5: result + save ---- */
+  function calc() {
+    const ex = SC.exam, m = ex.marking, n = ex.questions, key = keyL(); let sc = 0, cor = 0, wr = 0, bl = 0, mu = 0; const resp = {}, rows = [];
+    for (let q = 1; q <= n; q++) {
+      const e = eff(q), k = key[q - 1]; let pts;
+      if (e === "MULTI") { mu++; pts = m.multi; } else if (!e || e === "BLANK") { bl++; pts = m.blank; }
+      else if (e === k) { cor++; pts = m.correct; } else { wr++; pts = -m.wrong; }     /* wrong is stored as a positive penalty */
+      sc += pts; resp[q] = e || "BLANK"; rows.push({ q, e:e || "BLANK", k, pts });
+    }
+    return { score:Math.round(sc * 100) / 100, max:Math.round(n * m.correct * 100) / 100, cor, wr, bl, mu, resp, rows };
+  }
+  const norm2 = s => s.trim().toUpperCase();
+  function pg5() {
+    const R = calc(), s = SC.student, pct = R.max ? Math.round(R.score / R.max * 1000) / 10 : 0;
+    const dup = ((loadAll().records || {})[SC.exam.id] || []).some(r => r.studentName === norm2(s.name) && r.classSection === norm2(s.cls));
+    $("sc-step").innerHTML = '<h2>Student’s result</h2><div class="hero"><small>' + esc(SC.exam.name) + '</small><div style="font-size:1.4rem;font-weight:800">' + esc(norm2(s.name)) + '</div>' +
+      '<small>Class &amp; section: ' + esc(norm2(s.cls)) + ' · House: ' + esc(norm2(s.house) || "—") + '</small><div class="big">' + R.score + ' / ' + R.max + '</div><small>' + pct + '%</small></div>' +
+      '<div class="stats"><div class="stat"><b>' + R.cor + '</b><small>CORRECT</small></div><div class="stat"><b>' + R.wr + '</b><small>WRONG</small></div><div class="stat"><b>' + R.bl + '</b><small>BLANK</small></div><div class="stat"><b>' + R.mu + '</b><small>MULTI</small></div></div>' +
+      (dup ? '<div class="notice">A sheet for this student and class is already saved. Saving will replace it.</div>' : "") +
+      '<div class="bd">' + R.rows.map(o => '<div class="' + (o.e === o.k ? "ok" : o.e === "BLANK" ? "" : "no") + '"><b>Q' + pad2(o.q) + "</b> " + (o.e === "BLANK" ? "–" : o.e === "MULTI" ? "M" : o.e) + " (" + o.k + ") " + (o.pts > 0 ? "+" : "") + o.pts + "</div>").join("") + "</div>";
+  }
+  function saveRec() {
+    const R = calc(), s = SC.student, nm = norm2(s.name), cl = norm2(s.cls || "") || "—", all = loadAll(); all.records = all.records || {};
+    const list = (all.records[SC.exam.id] || []).filter(r => !(r.studentName === nm && r.classSection === cl));
+    list.push({ id:"rec_" + Date.now().toString(36), studentName:nm, classSection:cl, house:norm2(s.house) || "—", responses:R.resp, score:R.score, maxMarks:R.max,
+      correctCount:R.cor, wrongCount:R.wr, blankCount:R.bl, multiCount:R.mu, groups:Object.assign({}, s.extra || {}), timestamp:new Date().toISOString() });
+    all.records[SC.exam.id] = list; const ok = saveAll(all);
+    $("sc-bar").hidden = true; $("sc-kicker").textContent = "Saved";
+    $("sc-step").innerHTML = '<div class="done-tick" aria-hidden="true">✓</div><h2>Data saved</h2><p class="lead">' + esc(nm) + " · " + list.length + " sheet" + (list.length > 1 ? "s" : "") + " saved for this exam." +
+      (ok ? "" : " This browser could not store it, so it will be lost when you close the page.") + '</p><button class="btn" id="again" type="button">Scan next sheet</button>' +
+      '<button class="btn ghost" id="viewres" type="button" style="margin-top:10px">View result</button><button class="btn ghost" id="home2" type="button" style="margin-top:10px">Back to home</button>';
+    $("again").onclick = () => { SC.step = 1; SC.student = { name:"", cls:"", house:"", extra:{} }; SC.saved = false; resetImage(); scRender(); };
+    $("viewres").onclick = () => openResult(SC.exam.id);
+    $("home2").onclick = () => { renderList(); showScreen("welcome"); };
+  }
+
+  /* ================= RESULTS ================= */
+  const RS = { exam:null, view:"overall", q:"", open:null, armed:null, filters:{} };
+  const NS = "(NOT SET)";
+  const upC = s => String(s == null ? "" : s).trim().replace(/\s+/g, " ").toUpperCase();
+  const fmtN = n => String(Math.round(Number(n) * 100) / 100);
+  const pctOf = (s, m) => m ? Math.round(s / m * 1000) / 10 : 0;
+  const sgn = n => n > 0 ? "+" + n : String(n);
+  function openResult(id) {
+    const ex = loadAll().exams.find(e => e.id === id); if (!ex) return;
+    Object.assign(RS, { exam:ex, view:"overall", q:"", open:null, armed:null, filters:{} }); showScreen("result"); rsRender();
+  }
+  $("rs-back").onclick = () => { renderList(); showScreen("welcome"); };
+  function rsRecords() {
+    const ex = RS.exam, dflt = ex.questions * ex.marking.correct;
+    return (((loadAll().records || {})[ex.id]) || []).map(r => Object.assign({}, r, { score:Number(r.score) || 0, max:Number(r.maxMarks) || dflt }));
+  }
+  /* Ranking rules: marks high to low. Equal marks are listed A–Z by name (then class) and share one rank (1, 2, 2, 4). */
+  function rankList(list) {
+    const c = list.slice().sort((a, b) => b.score - a.score || a.studentName.localeCompare(b.studentName, undefined, { sensitivity:"base" }) || String(a.classSection).localeCompare(String(b.classSection)));
+    let rk = 1;
+    return c.map((r, i) => { if (i > 0 && r.score < c[i - 1].score) rk = i + 1;
+      return Object.assign({}, r, { rank:rk, tied:(i > 0 && r.score === c[i - 1].score) || (i < c.length - 1 && r.score === c[i + 1].score) }); });
+  }
+  const gValOf = (r, g) => { const v = g.id === "class" ? r.classSection : g.id === "house" ? r.house : (r.groups || {})[g.id]; return v && v !== "—" ? upC(v) : ""; };
+  const rsActive = () => Object.keys(RS.filters).some(k => RS.filters[k] && RS.filters[k].length);
+  const rsPass = r => (RS.exam.groups || []).every(g => { const sel = RS.filters[g.id]; return !sel || !sel.length || sel.indexOf(gValOf(r, g) || NS) >= 0; });
+  function rsFilterText() {
+    return (RS.exam.groups || []).filter(g => RS.filters[g.id] && RS.filters[g.id].length).map(g => g.label + ": " + RS.filters[g.id].map(v => v === NS ? "Not set" : (g.items.find(it => upC(it) === v) || v)).join(", ")).join(" · ");
+  }
+  function rsSections() {
+    const full = rankList(rsRecords()), orank = {}; full.forEach(r => { orank[r.id] = r.rank; });
+    const all = rankList(full.filter(rsPass));
+    if (RS.view === "overall") return [{ title:rsActive() ? "Filtered merit list" : "Overall merit list", rows:all.map(r => Object.assign(r, { orank:orank[r.id] })) }];
+    const g = (RS.exam.groups || []).find(x => x.id === RS.view); if (!g) { RS.view = "overall"; return rsSections(); }
+    const names = g.items.map(upC), seen = names.slice();
+    all.forEach(r => { const v = gValOf(r, g); if (v && seen.indexOf(v) < 0) seen.push(v); });
+    const secs = seen.map((v, i) => ({ title:g.items[i] || v, rows:rankList(all.filter(r => gValOf(r, g) === v)) }));
+    const none = all.filter(r => !gValOf(r, g)); if (none.length) secs.push({ title:"Not set", rows:rankList(none) });
+    secs.forEach(s => s.rows.forEach(r => { r.orank = orank[r.id]; }));
+    return secs.filter(s => s.rows.length);
+  }
+  const rsViewLabel = () => { const g = (RS.exam.groups || []).find(x => x.id === RS.view); return g ? g.label + "-wise" : "Overall"; };
+
+  function rsRender() {
+    const ex = RS.exam, total = rsRecords().length, recs = rankList(rsRecords().filter(rsPass)), n = recs.length;
+    let html = '<h1 style="margin:14px 0 4px;font-size:1.9rem">Result</h1><p class="lead" style="margin-bottom:14px">' + esc(ex.name) + " · " + ex.questions + " questions</p>";
+    if (!total) { $("rs-body").innerHTML = html + '<div class="empty">No sheets have been scanned for this examination yet.</div><button class="btn" id="rs-scan" type="button" style="margin-top:14px">Scan sheets</button>'; $("rs-scan").onclick = () => startScan(ex.id); return; }
+    const top = recs[0] || { score:0, max:0, studentName:"—" }, avg = n ? recs.reduce((a, r) => a + pctOf(r.score, r.max), 0) / n : 0, tied = recs.filter(r => r.tied).length;
+    const views = [{ id:"overall", label:"One list" }].concat((ex.groups || []).map(g => ({ id:g.id, label:g.label + "-wise" })));
+    html += '<div class="kpis"><div class="kpi"><small>Students</small><b>' + n + '</b>' + (rsActive() ? "<span>of " + total + "</span>" : "") + '</div><div class="kpi"><small>Highest</small><b>' + fmtN(top.score) + " / " + fmtN(top.max) + "</b><span>" + esc(top.studentName) + "</span></div>" +
+      '<div class="kpi"><small>Average</small><b>' + (Math.round(avg * 10) / 10) + '%</b></div><div class="kpi"><small>Tied on marks</small><b>' + tied + "</b><span>listed A–Z</span></div></div>" +
+      '<h2 style="margin-top:20px">Group results by</h2><div class="vcs" id="rs-views">' + views.map(v => '<button type="button" class="vc' + (RS.view === v.id ? " on" : "") + '" data-v="' + esc(v.id) + '">' + esc(v.label) + "</button>").join("") + "</div>" +
+      filterBlock(ex) +
+      '<input id="rs-q" placeholder="Search name, class or house" value="' + esc(RS.q) + '" autocomplete="off" style="margin-top:14px" />' +
+      '<div class="tools"><button class="btn small" id="rs-pdf" type="button" style="flex:1">Download PDF</button><button class="btn ghost small" id="rs-csv" type="button" style="flex:1">Download CSV</button></div>' +
+      '<p class="hint">Ranked by marks, high to low. Equal marks share a rank and are listed A–Z.</p><div id="rs-list"></div>';
+    $("rs-body").innerHTML = html; rsList();
+    $("rs-views").onclick = e => { const b = e.target.closest(".vc"); if (!b) return; RS.view = b.dataset.v; RS.open = null; rsRender(); };
+    const fb = $("rs-filters"); if (fb) fb.onclick = e => {
+      const b = e.target.closest(".fc"), c = e.target.closest("#rs-clr");
+      if (c) { RS.filters = {}; rsRender(); return; }
+      if (!b) return; const id = b.parentNode.dataset.g, v = b.dataset.v, cur = RS.filters[id] || [], i = cur.indexOf(v);
+      if (i >= 0) cur.splice(i, 1); else cur.push(v); RS.filters[id] = cur; RS.open = null; rsRender();
+    };
+    $("rs-q").oninput = e => { RS.q = e.target.value; rsList(); };
+    $("rs-csv").onclick = rsCsv; $("rs-pdf").onclick = rsPdf;
+    $("rs-list").onclick = e => {
+      const b = e.target.closest("[data-a]"); if (!b) return; const id = b.closest(".rrow").dataset.id;
+      if (b.dataset.a === "tog") { RS.open = RS.open === id ? null : id; RS.armed = null; rsList(); return; }
+      if (b.dataset.a === "del") {
+        if (RS.armed !== id) { RS.armed = id; b.textContent = "Tap again to delete this record"; return; }
+        const all = loadAll(); all.records[ex.id] = (all.records[ex.id] || []).filter(r => r.id !== id); saveAll(all); RS.open = null; RS.armed = null; rsRender(); toast("Record deleted.");
+      }
+    };
+  }
+  function filterBlock(ex) {
+    const gs = (ex.groups || []).filter(g => g.items && g.items.length); if (!gs.length) return "";
+    const recs = rsRecords();
+    return '<div id="rs-filters"><h2 style="margin-top:20px">Filter students</h2><p class="hint" style="margin-top:0">Pick one or more names in any list. A student must match every list you use.</p>' + gs.map(g => {
+      const opts = g.items.slice(); recs.forEach(r => { const v = gValOf(r, g); if (v && opts.map(upC).indexOf(v) < 0) opts.push(v); });
+      if (recs.some(r => !gValOf(r, g))) opts.push(NS);
+      return "<label>" + esc(g.label) + '</label><div class="vcs" data-g="' + esc(g.id) + '">' + opts.map(it => '<button type="button" class="vc fc' + ((RS.filters[g.id] || []).indexOf(upC(it)) >= 0 ? " on" : "") + '" data-v="' + esc(upC(it)) + '">' + esc(it === NS ? "Not set" : it) + "</button>").join("") + "</div>";
+    }).join("") + (rsActive() ? '<button class="btn ghost small" id="rs-clr" type="button" style="margin-top:12px">Clear filters</button>' : "") + "</div>";
+  }
+  function rsList() {
+    const q = upC(RS.q); let html = "";
+    rsSections().forEach(s => {
+      const rows = q ? s.rows.filter(r => upC(r.studentName + " " + r.classSection + " " + r.house).indexOf(q) >= 0) : s.rows; if (!rows.length) return;
+      html += '<div class="rsec"><div class="rsh"><b>' + esc(s.title) + "</b><span>" + s.rows.length + " student" + (s.rows.length > 1 ? "s" : "") + "</span></div>" + rows.map(rsRow).join("") + "</div>";
+    });
+    $("rs-list").innerHTML = html || '<div class="empty" style="margin-top:12px">No student matches the filters or search.</div>';
+  }
+  function rsRow(r) {
+    const open = RS.open === r.id, grp = RS.view !== "overall" || rsActive();
+    return '<div class="rrow' + (open ? " open" : "") + '" data-id="' + esc(r.id) + '"><button type="button" class="rhead" data-a="tog"><span class="rk r' + Math.min(r.rank, 4) + '">' + r.rank + '</span><span class="rn"><b>' + esc(r.studentName) +
+      "</b><small>" + esc(r.classSection) + (r.house && r.house !== "—" ? " · " + esc(r.house) : "") + (r.tied ? " · tied" : "") + (grp ? " · overall #" + r.orank : "") + '</small></span><span class="rsc"><b>' + fmtN(r.score) + "</b> / " + fmtN(r.max) +
+      "<small>" + pctOf(r.score, r.max) + "%</small></span></button>" + (open ? rsDetail(r) : "") + "</div>";
+  }
+  function rsDetail(r) {
+    const ex = RS.exam, m = ex.marking, key = ex.key.map(v => L(v)), extra = (ex.groups || []).filter(g => g.id !== "class" && g.id !== "house").map(g => g.label + ": " + (gValOf(r, g) || "—"));
+    let chips = "";
+    for (let q = 1; q <= ex.questions; q++) {
+      const e = (r.responses || {})[q] || "BLANK", k = key[q - 1], o = e === "MULTI" ? "multi" : e === "BLANK" ? "blank" : e === k ? "correct" : "wrong", pts = o === "correct" ? m.correct : o === "wrong" ? -m.wrong : o === "blank" ? m.blank : m.multi;
+      chips += '<div class="chip ' + o + '"><b>Q' + String(q).padStart(2, "0") + "</b><span>" + (e === "BLANK" ? "–" : e === "MULTI" ? "Multi" : e) + " (" + k + ")</span><i>" + sgn(pts) + "</i></div>";
+    }
+    return '<div class="rdet">' + (extra.length ? '<p class="hint">' + esc(extra.join(" · ")) + "</p>" : "") +
+      '<div class="stats">' + [["correctCount", "Correct"], ["wrongCount", "Wrong"], ["blankCount", "Blank"], ["multiCount", "Multi"]].map(k => '<div class="stat"><b>' + (r[k[0]] || 0) + "</b><small>" + k[1] + "</small></div>").join("") + "</div>" +
+      '<div class="chips">' + chips + '</div><button class="btn ghost small" data-a="del" type="button" style="width:100%">Delete this record</button></div>';
+  }
+
+  /* ---- exports ---- */
+  function rsSave(blob, ext) {
+    const nm = (RS.exam.name || "result").replace(/[^\w-]+/g, "_") + "_" + rsViewLabel().replace(/[^\w-]+/g, "_") + "_merit." + ext, a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = nm; document.body.appendChild(a); a.click(); a.remove();
+  }
+  const csvCell = v => { v = String(v == null ? "" : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  function rsCsv() {
+    const ex = RS.exam, others = (ex.groups || []).filter(g => g.id !== "class" && g.id !== "house"), rows = [["View", "Group", "Rank", "Overall rank", "Student name", "Class & section", "House"].concat(others.map(g => g.label), ["Marks", "Out of", "Percent", "Correct", "Wrong", "Blank", "Multi-mark", "Filters"])];
+    rsSections().forEach(s => s.rows.forEach(r => rows.push([rsViewLabel(), RS.view === "overall" ? "All" : s.title, r.rank, r.orank, r.studentName, r.classSection, r.house].concat(others.map(g => gValOf(r, g)),
+      [fmtN(r.score), fmtN(r.max), pctOf(r.score, r.max), r.correctCount || 0, r.wrongCount || 0, r.blankCount || 0, r.multiCount || 0, rsFilterText()]))));
+    rsSave(new Blob(["\ufeff" + rows.map(l => l.map(csvCell).join(",")).join("\r\n")], { type:"text/csv;charset=utf-8" }), "csv"); toast("CSV downloaded.");
+  }
+  function canvasesToPdf(cvs) {
+    const PW = 595.28, PH = 841.89, enc = new TextEncoder(), parts = [], off = []; let pos = 0;
+    const put = d => { const u = typeof d === "string" ? enc.encode(d) : d; parts.push(u); pos += u.length; }, obj = (i, body) => { off[i] = pos; put(i + " 0 obj\n" + body + "\nendobj\n"); };
+    put("%PDF-1.4\n"); obj(1, "<< /Type /Catalog /Pages 2 0 R >>"); obj(2, "<< /Type /Pages /Kids [" + cvs.map((_, i) => (3 + i * 3) + " 0 R").join(" ") + "] /Count " + cvs.length + " >>");
+    cvs.forEach((c, i) => {
+      const p = 3 + i * 3, ops = "q " + PW + " 0 0 " + PH + " 0 0 cm /Im0 Do Q\n";
+      obj(p, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + PW + " " + PH + "] /Resources << /XObject << /Im0 " + (p + 2) + " 0 R >> >> /Contents " + (p + 1) + " 0 R >>");
+      obj(p + 1, "<< /Length " + ops.length + " >>\nstream\n" + ops + "endstream");
+      const bin = atob(c.toDataURL("image/jpeg", 0.9).split(",")[1]), jpg = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) jpg[k] = bin.charCodeAt(k);
+      off[p + 2] = pos; put((p + 2) + " 0 obj\n<< /Type /XObject /Subtype /Image /Width " + c.width + " /Height " + c.height + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + jpg.length + " >>\nstream\n"); put(jpg); put("\nendstream\nendobj\n");
+    });
+    const total = 3 + cvs.length * 3, xr = pos;
+    put("xref\n0 " + total + "\n0000000000 65535 f \n" + Array.from({ length:total - 1 }, (_, i) => String(off[i + 1]).padStart(10, "0") + " 00000 n \n").join("") + "trailer\n<< /Size " + total + " /Root 1 0 R >>\nstartxref\n" + xr + "\n%%EOF");
+    return new Blob(parts, { type:"application/pdf" });
+  }
+  function rsPdf() {
+    try {
+      const ex = RS.exam, W = 1240, H = 1754, M = 90, RH = 40, F = s => s + 'px "Helvetica Neue", Arial, sans-serif', pages = [], colX = { rank:M, name:M + 100, cls:M + 600, house:M + 800, marks:W - M - 110, pct:W - M };
+      let g, y;
+      const fit = (t, w) => { while (t.length > 1 && g.measureText(t).width > w) t = t.slice(0, -1); return t; };
+      const header = () => { g.font = "bold " + F(22); g.fillStyle = "#111"; g.textAlign = "left"; g.fillText("Rank", colX.rank, y + 26); g.fillText("Student name", colX.name, y + 26); g.fillText("Class & section", colX.cls, y + 26); g.fillText("House", colX.house, y + 26);
+        g.textAlign = "right"; g.fillText("Marks", colX.marks, y + 26); g.fillText("%", colX.pct, y + 26); g.textAlign = "left"; g.fillStyle = "#111"; g.fillRect(M, y + 36, W - 2 * M, 2); y += 52; };
+      const page = first => { const c = document.createElement("canvas"); c.width = W; c.height = H; g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); pages.push(c); y = M;
+        if (first) { g.fillStyle = "#111"; g.font = "bold " + F(42); g.fillText(fit(ex.name, W - 2 * M), M, y + 38); g.fillStyle = "#555"; g.font = F(24);
+          g.fillText("Merit list · " + rsViewLabel() + " · " + new Date().toLocaleDateString(), M, y + 80); g.fillText("Marks high to low. Equal marks share a rank and are listed A–Z.", M, y + 112); const ft = rsFilterText(); if (ft) { g.fillText(fit("Filters: " + ft, W - 2 * M), M, y + 144); y += 32; } y += 150; } header(); };
+      page(true);
+      rsSections().forEach(s => {
+        if (RS.view !== "overall") { if (y + 3 * RH + 40 > H - M - 50) page(false); g.fillStyle = "#111"; g.font = "bold " + F(30); g.fillText(s.title + "  (" + s.rows.length + ")", M, y + 30); y += 52; }
+        s.rows.forEach((r, i) => {
+          if (y + RH > H - M - 50) page(false);
+          if (i % 2) { g.fillStyle = "#f2f4f7"; g.fillRect(M, y - 4, W - 2 * M, RH); }
+          g.fillStyle = "#111"; g.font = "bold " + F(24); g.textAlign = "left"; g.fillText(String(r.rank) + (r.tied ? "=" : ""), colX.rank, y + 26);
+          g.font = F(24); g.fillText(fit(r.studentName, 480), colX.name, y + 26); g.fillText(fit(r.classSection || "", 190), colX.cls, y + 26); g.fillText(fit(r.house && r.house !== "—" ? r.house : "", 160), colX.house, y + 26);
+          g.textAlign = "right"; g.fillText(fmtN(r.score) + " / " + fmtN(r.max), colX.marks + 40, y + 26); g.fillText(pctOf(r.score, r.max) + "", colX.pct, y + 26); g.textAlign = "left"; y += RH;
+        });
+        y += 20;
+      });
+      pages.forEach((c, i) => { const k = c.getContext("2d"); k.fillStyle = "#777"; k.font = F(20); k.textAlign = "left"; k.fillText("© Anant Shukla (M.Sc. Physics)", M, H - 50); k.textAlign = "right"; k.fillText("Page " + (i + 1) + " of " + pages.length, W - M, H - 50); });
+      rsSave(canvasesToPdf(pages), "pdf"); toast("PDF downloaded.");
+    } catch (e) { toast("Couldn’t prepare the PDF."); }
+  }
+
+  renderList();
+</script>
+</body>
+</html>
